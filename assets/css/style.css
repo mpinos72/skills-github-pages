@@ -1,1 +1,13 @@
+body {
+  font-family: sans-serif;
+  line-height: 1.6;
+  margin: 20px;
+  background-color: #ffffff;
+  color: #333;
+}
 
+h1 {
+  color: #0056b3;
+}
+
+/* Add any other styles you want */
