@@ -287,8 +287,8 @@
         let isPlaying = false;
         let isShuffle = false;
         let isLoop = false;
-        let currentTracklist = [...songs]; 
-        let originalOrderTracklist = [...songs]; 
+        let playbackTracklist = [...songs];
+        let originalPlaybackTracklist = [...songs]; 
         let favoriteSongIds = [];
         let playlists = []; 
         let currentOpenPlaylistId = null;
@@ -342,7 +342,7 @@
 
         // --- UI Logic ---
         function updatePlayerHeader() {
-            const songToDisplay = currentTracklist[currentSongIndex];
+            const songToDisplay = playbackTracklist[currentSongIndex];
             const activeTabButton = document.querySelector('.tab-button.tab-active');
             const activeTab = activeTabButton ? activeTabButton.dataset.tab : 'library';
 
@@ -367,8 +367,8 @@
         // --- Audio Controls ---
         function loadSong(index, options) {
             options = options || {};
-            if (index >= 0 && index < currentTracklist.length) {
-                const song = currentTracklist[index];
+            if (index >= 0 && index < playbackTracklist.length) {
+                const song = playbackTracklist[index];
                 currentSongIndex = index; 
                 audioPlayer.src = song.url;
 
@@ -392,7 +392,7 @@
         }
 
         function playSong() {
-            if (currentTracklist.length === 0) {
+            if (playbackTracklist.length === 0) {
                  showToast("No song to play.", 3000);
                  return;
             }
@@ -400,7 +400,7 @@
                 currentSongIndex = 0;
             }
             
-            const songToPlay = currentTracklist[currentSongIndex];
+            const songToPlay = playbackTracklist[currentSongIndex];
             if (!audioPlayer.src || audioPlayer.currentSrc !== songToPlay.url) {
                 loadSong(currentSongIndex);
             }
@@ -435,19 +435,19 @@
         });
 
         nextBtn.addEventListener('click', function() {
-            if (currentTracklist.length === 0) return;
+            if (playbackTracklist.length === 0) return;
             let nextIndex = currentSongIndex + 1;
-            if (nextIndex >= currentTracklist.length) {
+            if (nextIndex >= playbackTracklist.length) {
                 nextIndex = 0; 
             }
             loadSong(nextIndex);
         });
 
         prevBtn.addEventListener('click', function() {
-            if (currentTracklist.length === 0) return;
+            if (playbackTracklist.length === 0) return;
             let prevIndex = currentSongIndex - 1;
             if (prevIndex < 0) {
-                prevIndex = currentTracklist.length - 1;
+                prevIndex = playbackTracklist.length - 1;
             }
             loadSong(prevIndex);
         });
@@ -465,14 +465,19 @@
             shuffleBtn.classList.toggle('text-[#84cc16]', isShuffle);
             shuffleBtn.classList.toggle('text-gray-400', !isShuffle);
             
-            const activeTabButton = document.querySelector('.tab-button.tab-active');
-            if (activeTabButton) {
-                const activeTab = activeTabButton.dataset.tab;
-                if (activeTab === 'library') updateActiveTab('library');
-                else if (activeTab === 'favorites') updateActiveTab('favorites');
-                else if (activeTab === 'playlists' && currentOpenPlaylistId) renderSongsInPlaylist(currentOpenPlaylistId);
-            }
+            const playingSongId = playbackTracklist[currentSongIndex]?.id;
             
+            if (isShuffle) {
+                originalPlaybackTracklist = [...playbackTracklist];
+                playbackTracklist.sort(function() { return Math.random() - 0.5; });
+            } else {
+                playbackTracklist = [...originalPlaybackTracklist];
+            }
+
+            const newIndex = playingSongId ? playbackTracklist.findIndex(function(s) { return s.id === playingSongId; }) : -1;
+            currentSongIndex = newIndex !== -1 ? newIndex : 0;
+            
+            updateSelectedSongUI();
             showToast(isShuffle ? "Shuffle enabled" : "Shuffle disabled");
         });
         
@@ -526,7 +531,7 @@
                 const songDiv = document.createElement('div');
                 songDiv.className = 'song-item p-3 flex justify-between items-center cursor-pointer hover:bg-gray-700 transition-colors duration-150';
                 
-                const currentSong = currentTracklist[currentSongIndex];
+                const currentSong = playbackTracklist[currentSongIndex];
                 if (currentSong && song.id === currentSong.id) {
                      songDiv.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
                 }
@@ -560,10 +565,10 @@
                     const clickedSongId = songDiv.dataset.songId;
 
                     if (action === 'play') {
-                        currentTracklist = [...tracklistToRender];
-                        originalOrderTracklist = [...tracklistToRender];
+                        playbackTracklist = [...tracklistToRender];
+                        originalPlaybackTracklist = [...tracklistToRender];
                         
-                        const songIndexToPlay = currentTracklist.findIndex(function(s) { return s.id === clickedSongId; });
+                        const songIndexToPlay = playbackTracklist.findIndex(function(s) { return s.id === clickedSongId; });
 
                         if (songIndexToPlay !== -1) {
                             loadSong(songIndexToPlay);
@@ -588,22 +593,9 @@
                 item.classList.remove('selected', 'border-l-4', 'border-[#84cc16]');
                 const songId = item.dataset.songId;
                 
-                const currentSong = currentTracklist[currentSongIndex];
+                const currentSong = playbackTracklist[currentSongIndex];
                 if (currentSong && songId === currentSong.id) {
-                    const parentView = item.closest('.tab-content');
-                    if (!parentView) return;
-
-                    const activeTabButton = document.querySelector('.tab-button.tab-active');
-                    const activeTab = activeTabButton ? activeTabButton.dataset.tab : null;
-                    let isActiveViewItem = false;
-
-                    if (activeTab === 'library' && parentView.id === 'libraryView') isActiveViewItem = true;
-                    if (activeTab === 'favorites' && parentView.id === 'favoritesView') isActiveViewItem = true;
-                    if (activeTab === 'playlists' && currentOpenPlaylistId && parentView.id === 'singlePlaylistSongsView') isActiveViewItem = true;
-
-                    if(isActiveViewItem){
-                        item.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
-                    }
+                    item.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
                 }
             });
         }
@@ -714,7 +706,7 @@
         async function savePlaybackState() {
             if (!userId || !dbUserDocRef || currentSongIndex < 0) return;
             
-            const songToSave = currentTracklist[currentSongIndex];
+            const songToSave = playbackTracklist[currentSongIndex];
             if (!songToSave) return;
             
             const state = {
@@ -730,6 +722,10 @@
         }
         
         window.addEventListener('beforeunload', savePlaybackState);
+        
+        window.onAppScreenPause = function() {
+            pauseSong();
+        };
 
 
         // --- Playlist Management ---
@@ -956,3 +952,4 @@
 
     </script>
 </body>
+</html>
