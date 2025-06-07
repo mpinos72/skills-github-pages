@@ -123,69 +123,96 @@
             background-color: #84cc16 !important;
             color: #1f2937 !important;
         }
+        
+        /* Lyrics Styling */
+        #lyricsContainer {
+            height: 80px; /* Adjust height as needed for single line */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .lyric-line {
+            text-align: center;
+            font-size: 1.125rem; /* lg */
+            font-weight: 500;
+            color: #fff;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .lyric-line.hidden {
+            opacity: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white flex flex-col h-screen">
 
     <!-- Audio Element -->
     <audio id="audioPlayer"></audio>
-
-    <!-- Top Bar: Current Song Info -->
-    <div class="p-4 bg-gray-800 shadow-md relative">
-        <div id="currentSongDisplay" class="text-center flex items-center justify-center">
-             <div id="header-now-playing" class="now-playing-indicator hidden mr-2">
-               <span></span><span></span><span></span><span></span>
+    
+    <!-- Top Player Section (non-scrolling part) -->
+    <div class="flex-shrink-0">
+        <!-- Top Bar: Current Song Info -->
+        <div class="p-4 bg-gray-800 shadow-md relative">
+            <div id="currentSongDisplay" class="text-center flex items-center justify-center">
+                 <div id="header-now-playing" class="now-playing-indicator hidden mr-2">
+                   <span></span><span></span><span></span><span></span>
+                </div>
+                <div>
+                    <p id="songTitle" class="text-lg font-semibold truncate">No Song Selected</p>
+                    <p id="songArtist" class="text-sm text-gray-400 truncate">---</p>
+                </div>
             </div>
-            <div>
-                <p id="songTitle" class="text-lg font-semibold truncate">No Song Selected</p>
-                <p id="songArtist" class="text-sm text-gray-400 truncate">---</p>
+        </div>
+
+        <!-- Progress Bar and Time -->
+        <div class="p-4 bg-gray-800">
+            <input type="range" id="progressBar" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
             </div>
         </div>
-    </div>
 
-    <!-- Progress Bar and Time -->
-    <div class="p-4 bg-gray-800">
-        <input type="range" id="progressBar" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
-        <div class="flex justify-between text-xs text-gray-400 mt-1">
-            <span id="currentTime">0:00</span>
-            <span id="duration">0:00</span>
+        <!-- Player Controls -->
+        <div class="p-4 bg-gray-800 flex items-center justify-around">
+            <button id="shuffleBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-random fa-lg"></i></button>
+            <button id="prevBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-backward fa-xl"></i></button>
+            <button id="playPauseBtn" class="player-button text-[#84cc16] hover:text-[#65a30d] bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center">
+                <i class="fas fa-play fa-2x"></i>
+            </button>
+            <button id="nextBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-forward fa-xl"></i></button>
+            <button id="loopBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-retweet fa-lg"></i></button>
+        </div>
+
+        <!-- Volume and Sleep Timer -->
+        <div class="px-4 md:px-6 pt-2 pb-4 bg-gray-800 flex items-center justify-center relative">
+            <!-- Centered Volume Controls -->
+            <div class="flex items-center justify-center space-x-2 w-full">
+                <i class="fas fa-volume-down text-gray-400"></i>
+                <input type="range" id="volumeCtrl" min="0" max="1" step="0.01" value="0.5" class="w-1/2 md:w-1/3 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
+                <i class="fas fa-volume-up text-gray-400"></i>
+            </div>
+            <!-- Sleep Timer Button absolutely positioned on the right -->
+            <div class="absolute right-4 md:right-6">
+                 <button id="sleepTimerBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-clock fa-lg"></i></button>
+            </div>
+        </div>
+        
+        <!-- Lyrics Display -->
+        <div id="lyricsContainer" class="bg-gray-800 p-2">
+            <p id="lyricsDisplay" class="lyric-line"></p>
+        </div>
+
+        <!-- Tabs for Song Lists -->
+        <div class="flex border-b border-gray-700 sticky top-0 bg-gray-900 z-10">
+            <button data-tab="library" class="tab-button flex-1 py-3 text-center text-gray-400 hover:text-white tab-active">Library</button>
+            <button data-tab="favorites" class="tab-button flex-1 py-3 text-center text-gray-400 hover:text-white">Favorites</button>
+            <button data-tab="playlists" class="tab-button flex-1 py-3 text-center text-gray-400 hover:text-white">Playlists</button>
         </div>
     </div>
-
-    <!-- Player Controls -->
-    <div class="p-4 bg-gray-800 flex items-center justify-around">
-        <button id="shuffleBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-random fa-lg"></i></button>
-        <button id="prevBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-backward fa-xl"></i></button>
-        <button id="playPauseBtn" class="player-button text-[#84cc16] hover:text-[#65a30d] bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center">
-            <i class="fas fa-play fa-2x"></i>
-        </button>
-        <button id="nextBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-forward fa-xl"></i></button>
-        <button id="loopBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-retweet fa-lg"></i></button>
-    </div>
-
-    <!-- Volume and Sleep Timer -->
-    <div class="px-4 md:px-6 pt-2 pb-4 bg-gray-800 flex items-center justify-center relative">
-        <!-- Centered Volume Controls -->
-        <div class="flex items-center justify-center space-x-2 w-full">
-            <i class="fas fa-volume-down text-gray-400"></i>
-            <input type="range" id="volumeCtrl" min="0" max="1" step="0.01" value="0.5" class="w-1/2 md:w-1/3 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
-            <i class="fas fa-volume-up text-gray-400"></i>
-        </div>
-        <!-- Sleep Timer Button absolutely positioned on the right -->
-        <div class="absolute right-4 md:right-6">
-             <button id="sleepTimerBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-clock fa-lg"></i></button>
-        </div>
-    </div>
-
-
-    <!-- Tabs for Song Lists -->
-    <div class="flex border-b border-gray-700 sticky top-0 bg-gray-900 z-10">
-        <button data-tab="library" class="tab-button flex-1 py-3 text-center text-gray-400 hover:text-white tab-active">Library</button>
-        <button data-tab="favorites" class="tab-button flex-1 py-3 text-center text-gray-400 hover:text-white">Favorites</button>
-        <button data-tab="playlists" class="tab-button flex-1 py-3 text-center text-gray-400 hover:text-white">Playlists</button>
-    </div>
-
-    <!-- Song List Area -->
+    
+    <!-- Song List Area (scrollable part) -->
     <div id="songListContainer" class="flex-grow overflow-y-auto custom-scrollbar p-2">
         <!-- Library View -->
         <div id="libraryView" class="tab-content">
@@ -314,6 +341,7 @@
         const songTitleDisplay = document.getElementById('songTitle');
         const songArtistDisplay = document.getElementById('songArtist');
         const headerNowPlayingIndicator = document.getElementById('header-now-playing');
+        const lyricsDisplay = document.getElementById('lyricsDisplay');
 
         const libraryView = document.getElementById('libraryView');
         const favoritesView = document.getElementById('favoritesView');
@@ -352,16 +380,18 @@
 
 
         let songs = [
-            { id: 's1', title: 'Surah 1: Al-Fatiha', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/001.mp3'},
-            { id: 's2', title: 'Surah 2: Al-Baqarah', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/002.mp3'},
-            { id: 's3', title: 'Surah 3: Al-Imran', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/003.mp3'},
-            { id: 's4', title: 'Surah 4: An-Nisa', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/004.mp3'},
-            { id: 's5', title: 'Surah 5: Al-Maeda', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/005.mp3'},
-            { id: 's6', title: 'Surah 6: Al-Annam', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/006.mp3'},
-            { id: 's7', title: 'Surah 7: Al-Araf', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/007.mp3'},
-            { id: 's8', title: 'Surah 8: Al-Anfal', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/008.mp3'},
-            { id: 's9', title: 'Surah 9: At-Tawba', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/009.mp3'},
-            { id: 's10', title: 'Surah 10: Yunus', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/010.mp3'}
+            { id: 's1', title: 'Surah 1: Al-Fatiha', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/001.mp3', 
+              lyrics: `[00:00.00] \n[00:08.20] In the name of Allah, the Entirely Merciful, the Especially Merciful.\n[00:15.50] \n[00:17.50] [All] praise is [due] to Allah, Lord of the worlds -\n[00:22.50] \n[00:24.50] The Entirely Merciful, the Especially Merciful,\n[00:28.50] \n[00:29.50] Sovereign of the Day of Recompense.\n[00:33.50] \n[00:34.50] It is You we worship and You we ask for help.\n[00:38.50] \n[00:39.50] Guide us to the straight path -\n[00:45.50] \n[00:46.50] The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.`},
+            { id: 's2', title: 'Surah 2: Al-Baqarah', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/002.mp3',
+              lyrics: `[00:01.00]Alif, Lam, Meem.\n[00:04.50]This is the Book about which there is no doubt...\n[00:07.50]...a guidance for those conscious of Allah -`},
+            { id: 's3', title: 'Surah 3: Al-Imran', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/003.mp3', lyrics: ''},
+            { id: 's4', title: 'Surah 4: An-Nisa', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/004.mp3', lyrics: ''},
+            { id: 's5', title: 'Surah 5: Al-Maeda', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/005.mp3', lyrics: ''},
+            { id: 's6', title: 'Surah 6: Al-Annam', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/006.mp3', lyrics: ''},
+            { id: 's7', title: 'Surah 7: Al-Araf', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/007.mp3', lyrics: ''},
+            { id: 's8', title: 'Surah 8: Al-Anfal', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/008.mp3', lyrics: ''},
+            { id: 's9', title: 'Surah 9: At-Tawba', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/009.mp3', lyrics: ''},
+            { id: 's10', title: 'Surah 10: Yunus', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/010.mp3', lyrics: ''}
         ];
 
         let currentSongIndex = 0;
@@ -376,6 +406,8 @@
         let lastPlaybackState = null;
         let sleepTimerId = null;
         let activeTimerMinutes = 0;
+        let parsedLyrics = [];
+        let currentLyricText = "";
 
         // --- Toast Notification ---
         function showToast(message, duration) {
@@ -476,6 +508,9 @@
                 const song = playbackTracklist[index];
                 currentSongIndex = index; 
                 audioPlayer.src = song.url;
+                
+                parseLyrics(song.lyrics);
+                updateLyrics(0);
 
                 audioPlayer.oncanplaythrough = function() {
                     if (options.seekTime) {
@@ -596,6 +631,7 @@
                 const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
                 progressBar.value = progress;
                 currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+                updateLyrics(audioPlayer.currentTime);
             }
         });
 
@@ -927,6 +963,49 @@
                 setSleepTimer(minutes);
             }
         });
+
+        // --- Lyrics ---
+        function parseLyrics(lyricsString) {
+            parsedLyrics = [];
+            currentLyricText = ""; // Reset current lyric
+            if (!lyricsString || lyricsString.trim() === '') {
+                 lyricsDisplay.textContent = 'No lyrics available for this song.';
+                 return;
+            }
+            const lines = lyricsString.split('\n');
+            lines.forEach(function(line) {
+                const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
+                if (match) {
+                    const minutes = parseInt(match[1], 10);
+                    const seconds = parseInt(match[2], 10);
+                    const milliseconds = parseInt(match[3], 10);
+                    const time = minutes * 60 + seconds + milliseconds / 1000;
+                    const text = match[4].trim();
+                    parsedLyrics.push({ time: time, text: text });
+                }
+            });
+        }
+        
+        function updateLyrics(currentTime) {
+            if (parsedLyrics.length === 0) return;
+            
+            let currentLine = "";
+            for (let i = parsedLyrics.length - 1; i >= 0; i--) {
+                if (currentTime >= parsedLyrics[i].time) {
+                    currentLine = parsedLyrics[i].text;
+                    break;
+                }
+            }
+            
+            if(currentLyricText !== currentLine) {
+                currentLyricText = currentLine;
+                lyricsDisplay.classList.add('hidden'); // Start fade out
+                setTimeout(function(){
+                    lyricsDisplay.textContent = currentLine || '\u00A0'; // Use a non-breaking space for empty lines
+                    lyricsDisplay.classList.remove('hidden'); // Start fade in
+                }, 200);
+            }
+        }
 
 
         // --- Playlist Management ---
