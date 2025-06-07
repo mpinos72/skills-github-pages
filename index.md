@@ -203,11 +203,10 @@
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, addDoc, getDocs, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Added arrayUnion, arrayRemove
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, addDoc, getDocs, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // Fallback config if __firebase_config is not injected (for local testing)
             // PASTE YOUR ACTUAL FIREBASE CONFIG HERE
             apiKey: "YOUR_API_KEY", 
             authDomain: "YOUR_AUTH_DOMAIN",
@@ -222,8 +221,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        // import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // For debugging
-        // setLogLevel('debug'); // Uncomment for Firestore debugging
 
         let userId = null;
         let dbUserDocRef = null;
@@ -259,7 +256,6 @@
         const myPlaylistsContainer = document.getElementById('myPlaylistsContainer');
         const noSongsInPlaylistMessage = document.getElementById('noSongsInPlaylistMessage');
 
-
         // Modals
         const createPlaylistModal = document.getElementById('createPlaylistModal');
         const newPlaylistNameInput = document.getElementById('newPlaylistName');
@@ -289,7 +285,7 @@
             { id: 's10', title: 'Surah 10: Yunus', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/010.mp3'}
         ];
 
-        let currentSongIndex = 0; // Start with the first song selected
+        let currentSongIndex = 0;
         let isPlaying = false;
         let isShuffle = false;
         let isLoop = false;
@@ -328,7 +324,6 @@
                 renderFavorites();
                 renderPlaylists();
             }
-            // Initial UI setup after auth state is known
             updateActiveTab('library', { isInitialLoad: true });
         });
 
@@ -342,13 +337,6 @@
             } catch (error) {
                 console.error("Authentication error:", error);
                 showToast("Error connecting to services. Data might not save.", 5000);
-                if (!userId) { 
-                    userId = 'tempUser_' + Date.now();
-                    console.warn("Using temporary non-persistent user ID due to auth failure:", userId);
-                    dbUserDocRef = doc(db, "artifacts", appId, "users", userId);
-                    dbPlaylistsCollectionRef = collection(dbUserDocRef, "playlists");
-                    updateActiveTab('library', { isInitialLoad: true });
-                }
             }
         }
 
@@ -362,7 +350,7 @@
             if (options.view === 'favorites' && options.isEmpty) {
                 title = "No Songs in Favorites";
                 artist = "---";
-            } else if (options.view === 'playlists' && options.isEmpty) {
+            } else if (options.view === 'playlists' && options.isEmpty && !currentOpenPlaylistId) {
                 title = "No Songs in Playlist";
                 artist = "---";
             } else if (options.view === 'singlePlaylist' && options.isEmpty) {
@@ -398,7 +386,9 @@
             if (currentSongIndex === -1) {
                 currentSongIndex = 0;
             }
-            if (!audioPlayer.src || audioPlayer.currentSrc !== currentTracklist[currentSongIndex].url) {
+            
+            const songToPlay = currentTracklist[currentSongIndex];
+            if (!audioPlayer.src || audioPlayer.currentSrc !== songToPlay.url) {
                 loadSong(currentSongIndex);
             }
             
@@ -410,7 +400,6 @@
                     })
                     .catch(error => {
                         console.error("Error playing audio:", error);
-                        showToast("Error playing audio. Check URL or network.", 4000);
                         isPlaying = false;
                         playPauseBtn.innerHTML = '<i class="fas fa-play fa-2x"></i>';
                     });
@@ -462,10 +451,13 @@
             shuffleBtn.classList.toggle('text-[#84cc16]', isShuffle);
             shuffleBtn.classList.toggle('text-gray-400', !isShuffle);
             
-            const activeTab = document.querySelector('.tab-button.tab-active')?.dataset.tab;
-            if (activeTab === 'library') updateActiveTab('library');
-            else if (activeTab === 'favorites') updateActiveTab('favorites');
-            else if (activeTab === 'playlists' && currentOpenPlaylistId) renderSongsInPlaylist(currentOpenPlaylistId);
+            const activeTabButton = document.querySelector('.tab-button.tab-active');
+            if (activeTabButton) {
+                const activeTab = activeTabButton.dataset.tab;
+                if (activeTab === 'library') updateActiveTab('library');
+                else if (activeTab === 'favorites') updateActiveTab('favorites');
+                else if (activeTab === 'playlists' && currentOpenPlaylistId) renderSongsInPlaylist(currentOpenPlaylistId);
+            }
             
             showToast(isShuffle ? "Shuffle enabled" : "Shuffle disabled");
         });
@@ -509,7 +501,7 @@
         }
 
         // --- Song List Rendering ---
-        function renderSongList(container, tracklistToRender, isPlaylistContext = false, playlistIdForContext = null) {
+        function renderSongList(container, tracklistToRender, isPlaylistContext, playlistIdForContext) {
             container.innerHTML = ''; 
             if (!tracklistToRender || tracklistToRender.length === 0) {
                  if (container === libraryView) container.innerHTML = '<p class="text-gray-500 text-center p-4">Library is empty.</p>';
@@ -520,7 +512,7 @@
                 const songDiv = document.createElement('div');
                 songDiv.className = 'song-item p-3 flex justify-between items-center cursor-pointer hover:bg-gray-700 transition-colors duration-150';
                 
-                if (song.id === currentTracklist[currentSongIndex]?.id ) {
+                if (song.id === currentTracklist[currentSongIndex]?.id) {
                      songDiv.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
                 }
                 songDiv.dataset.songId = song.id;
@@ -553,14 +545,10 @@
                     const clickedSongId = songDiv.dataset.songId;
 
                     if (action === 'play') {
-                        // Set the tracklist based on the view the user is clicking from
-                        const parentView = e.target.closest('.tab-content');
-                        if (parentView.id === 'libraryView') {
-                            currentTracklist = isShuffle ? [...songs].sort(()=> Math.random() - 0.5) : [...songs];
-                            originalOrderTracklist = [...songs];
-                        } // Favorites and Playlists tracklists are set when the tab is switched
+                        currentTracklist = [...tracklistToRender];
+                        originalOrderTracklist = [...tracklistToRender];
                         
-                        const songIndexToPlay = currentTracklist.findIndex(s => s.id === clickedSongId);
+                        const songIndexToPlay = currentTracklist.findIndex(function(s) { return s.id === clickedSongId; });
 
                         if (songIndexToPlay !== -1) {
                             loadSong(songIndexToPlay);
@@ -580,14 +568,17 @@
         }
         
         function updateSelectedSongUI() {
-            document.querySelectorAll('.song-item').forEach(item => {
+            document.querySelectorAll('.song-item').forEach(function(item) {
                 item.classList.remove('selected', 'border-l-4', 'border-[#84cc16]');
                 const songId = item.dataset.songId;
                 
-                if (songId === currentTracklist[currentSongIndex]?.id) {
+                const currentSong = currentTracklist[currentSongIndex];
+                if (currentSong && songId === currentSong.id) {
                     const parentView = item.closest('.tab-content');
                     if (!parentView) return;
-                    const activeTab = document.querySelector('.tab-button.tab-active').dataset.tab;
+
+                    const activeTabButton = document.querySelector('.tab-button.tab-active');
+                    const activeTab = activeTabButton ? activeTabButton.dataset.tab : null;
                     let isActiveViewItem = false;
 
                     if (activeTab === 'library' && parentView.id === 'libraryView') isActiveViewItem = true;
@@ -605,61 +596,41 @@
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
 
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
+        tabButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
                 const tabName = button.dataset.tab;
                 updateActiveTab(tabName);
             });
         });
         
-        function updateActiveTab(tabName, options = {}) {
-            tabButtons.forEach(btn => {
+        function updateActiveTab(tabName, options) {
+            options = options || {};
+            tabButtons.forEach(function(btn) {
                 btn.classList.toggle('tab-active', btn.dataset.tab === tabName);
                 btn.classList.toggle('text-gray-400', btn.dataset.tab !== tabName);
             });
-            tabContents.forEach(content => {
+            tabContents.forEach(function(content) {
                 content.classList.add('hidden');
             });
 
             currentOpenPlaylistId = null; 
             
-            let viewIsEmpty = false;
-
             if (tabName === 'library') {
                 document.getElementById('libraryView').classList.remove('hidden');
-                currentTracklist = isShuffle ? [...songs].sort(() => Math.random() - 0.5) : [...songs];
+                currentTracklist = isShuffle ? [...songs].sort(function() { return Math.random() - 0.5; }) : [...songs];
                 originalOrderTracklist = [...songs];
                 renderSongList(libraryView, currentTracklist); 
             } else if (tabName === 'favorites') {
                 document.getElementById('favoritesView').classList.remove('hidden');
-                const favSongsData = songs.filter(song => favoriteSongIds.includes(song.id));
-                currentTracklist = isShuffle ? [...favSongsData].sort(() => Math.random() - 0.5) : [...favSongsData];
-                originalOrderTracklist = [...favSongsData];
                 renderFavorites();
-                viewIsEmpty = favSongsData.length === 0;
             } else if (tabName === 'playlists') {
                 document.getElementById('playlistsView').classList.remove('hidden');
                 singlePlaylistSongsView.classList.add('hidden'); 
-                currentTracklist = []; // No active tracklist when on the main playlist view
-                originalOrderTracklist = [];
                 renderPlaylists();
-                viewIsEmpty = playlists.length === 0;
             }
             
             if (options.isInitialLoad) {
                 loadSong(0);
-            } else {
-                const playingSongId = audioPlayer.currentSrc ? songs.find(s => s.url === audioPlayer.currentSrc)?.id : null;
-                const songIndexInNewList = playingSongId ? currentTracklist.findIndex(s => s.id === playingSongId) : -1;
-
-                if (songIndexInNewList !== -1) {
-                    currentSongIndex = songIndexInNewList;
-                    updatePlayerHeader({ view: tabName, isEmpty: viewIsEmpty });
-                    updateSelectedSongUI();
-                } else {
-                    loadSong(0); // Load first song of the new context, will handle empty lists
-                    updatePlayerHeader({ view: tabName, isEmpty: viewIsEmpty });
-                }
             }
         }
 
@@ -670,15 +641,16 @@
             }
             if (unsubscribeUserDoc) unsubscribeUserDoc(); 
 
-            unsubscribeUserDoc = onSnapshot(dbUserDocRef, (docSnap) => {
+            unsubscribeUserDoc = onSnapshot(dbUserDocRef, function(docSnap) {
                 if (docSnap.exists()) {
-                    favoriteSongIds = docSnap.data().favoriteSongIds || [];
+                    const data = docSnap.data();
+                    favoriteSongIds = data.favoriteSongIds || [];
                 } else {
                     favoriteSongIds = [];
                     console.log("User document does not exist yet for UID:", userId);
                 }
-                renderFavorites(); // Always re-render the fav list contents when data changes
-            }, (error) => {
+                renderFavorites();
+            }, function(error) {
                 console.error("Error loading user document (favorites):", error);
                 showToast("Could not load favorites.", 4000);
             });
@@ -703,22 +675,22 @@
         }
 
         function renderFavorites() {
-            const favSongsData = songs.filter(song => favoriteSongIds.includes(song.id));
-            noFavoritesMessage.classList.toggle('hidden', favSongsData.length === 0);
+            const favSongsData = songs.filter(function(song) { return favoriteSongIds.includes(song.id); });
+            noFavoritesMessage.classList.toggle('hidden', favSongsData.length > 0);
             renderSongList(favoritesView, favSongsData);
             updatePlayerHeader({ view: 'favorites', isEmpty: favSongsData.length === 0 });
             updateSelectedSongUI();
         }
 
         // --- Playlist Management (Uses dbPlaylistsCollectionRef) ---
-        createPlaylistBtn.addEventListener('click', () => {
+        createPlaylistBtn.addEventListener('click', function() {
             newPlaylistNameInput.value = '';
             createPlaylistModal.classList.add('active');
             newPlaylistNameInput.focus();
         });
-        cancelCreatePlaylistBtn.addEventListener('click', () => createPlaylistModal.classList.remove('active'));
+        cancelCreatePlaylistBtn.addEventListener('click', function() { createPlaylistModal.classList.remove('active'); });
 
-        savePlaylistBtn.addEventListener('click', async () => {
+        savePlaylistBtn.addEventListener('click', async function() {
             if (!userId || !dbPlaylistsCollectionRef) {
                  showToast("Cannot save playlist. Not connected.", 3000); return;
             }
@@ -726,7 +698,7 @@
             if (!playlistName) {
                 showToast("Playlist name cannot be empty.", 3000); return;
             }
-            if (playlists.find(p => p.name.toLowerCase() === playlistName.toLowerCase())) {
+            if (playlists.find(function(p) { return p.name.toLowerCase() === playlistName.toLowerCase(); })) {
                 showToast("A playlist with this name already exists.", 3000); return;
             }
             try {
@@ -750,25 +722,24 @@
             if (unsubscribePlaylists) unsubscribePlaylists();
 
             const q = query(dbPlaylistsCollectionRef);
-            unsubscribePlaylists = onSnapshot(q, (querySnapshot) => {
+            unsubscribePlaylists = onSnapshot(q, function(querySnapshot) {
                 playlists = [];
-                querySnapshot.forEach((doc) => {
+                querySnapshot.forEach(function(doc) {
                     playlists.push({ id: doc.id, ...doc.data() });
                 });
-                playlists.sort((a,b) => a.name.localeCompare(b.name));
+                playlists.sort(function(a,b) { return a.name.localeCompare(b.name); });
 
                 renderPlaylists();
-                updatePlayerHeader({ view: 'playlists', isEmpty: playlists.length === 0 });
                 
                 if (currentOpenPlaylistId) {
-                    const stillExists = playlists.find(p => p.id === currentOpenPlaylistId);
+                    const stillExists = playlists.find(function(p) { return p.id === currentOpenPlaylistId; });
                     if (stillExists) {
                         renderSongsInPlaylist(currentOpenPlaylistId);
                     } else { 
                         showPlaylistsList(); 
                     }
                 }
-            }, (error) => {
+            }, function(error) {
                 console.error("Error loading playlists:", error);
             });
         }
@@ -778,16 +749,16 @@
             noPlaylistsMessage.classList.toggle('hidden', playlists.length > 0);
 
             if (playlists.length > 0) {
-                playlists.forEach(playlist => {
+                playlists.forEach(function(playlist) {
                     const div = document.createElement('div');
                     div.className = 'p-3 bg-gray-800 rounded-lg mb-2 flex justify-between items-center cursor-pointer hover:bg-gray-700 transition-colors duration-150';
                     div.innerHTML = `
-                        <span class="font-semibold truncate flex-grow">${playlist.name} (${playlist.songIds?.length || 0} songs)</span>
+                        <span class="font-semibold truncate flex-grow">${playlist.name} (${(playlist.songIds && playlist.songIds.length) || 0} songs)</span>
                         <div class="flex-shrink-0">
                             <button data-playlist-id="${playlist.id}" data-action="delete-playlist" class="text-red-500 hover:text-red-400 p-2 rounded-full focus:outline-none"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     `;
-                    div.addEventListener('click', (e) => {
+                    div.addEventListener('click', function(e) {
                         const buttonTarget = e.target.closest('button[data-action="delete-playlist"]');
                         if (buttonTarget) {
                             const playlistId = buttonTarget.dataset.playlistId;
@@ -801,6 +772,7 @@
                     myPlaylistsContainer.appendChild(div);
                 });
             }
+            updatePlayerHeader({ view: 'playlists', isEmpty: playlists.length === 0 });
         }
 
         async function deletePlaylist(playlistId) {
@@ -823,8 +795,8 @@
             noPlaylistsForAddingMessage.classList.toggle('hidden', playlists.length > 0);
 
             if (playlists.length > 0) {
-                playlists.forEach(playlist => {
-                    const isSongInPlaylist = playlist.songIds?.includes(songId);
+                playlists.forEach(function(playlist) {
+                    const isSongInPlaylist = playlist.songIds && playlist.songIds.includes(songId);
 
                     const pDiv = document.createElement('div');
                     pDiv.className = 'p-2 border-b border-gray-700 flex justify-between items-center last:border-b-0';
@@ -835,7 +807,7 @@
                         </button>
                     `;
                     if (!isSongInPlaylist) {
-                        pDiv.querySelector('button').addEventListener('click', async () => {
+                        pDiv.querySelector('button').addEventListener('click', async function() {
                             await addSongToPlaylist(songId, playlist.id);
                             addToPlaylistModal.classList.remove('active'); 
                         });
@@ -845,7 +817,7 @@
             }
             addToPlaylistModal.classList.add('active');
         }
-        cancelAddToPlaylistBtn.addEventListener('click', () => addToPlaylistModal.classList.remove('active'));
+        cancelAddToPlaylistBtn.addEventListener('click', function() { addToPlaylistModal.classList.remove('active'); });
 
         async function addSongToPlaylist(songId, playlistId) {
             if (!userId || !dbPlaylistsCollectionRef) {
@@ -854,8 +826,8 @@
             const playlistRef = doc(dbPlaylistsCollectionRef, playlistId);
             try {
                 await updateDoc(playlistRef, { songIds: arrayUnion(songId) });
-                const playlist = playlists.find(p => p.id === playlistId);
-                showToast(`Added to playlist "${playlist?.name || 'playlist'}".`);
+                const playlist = playlists.find(function(p) { return p.id === playlistId; });
+                showToast(`Added to playlist "${playlist ? playlist.name : 'playlist'}".`);
             } catch (error) {
                 console.error("Error adding song to playlist:", error);
                 showToast("Error adding song to playlist.", 3000);
@@ -869,8 +841,8 @@
             const playlistRef = doc(dbPlaylistsCollectionRef, playlistId);
             try {
                 await updateDoc(playlistRef, { songIds: arrayRemove(songId) });
-                const playlist = playlists.find(p => p.id === playlistId);
-                showToast(`Removed from playlist "${playlist?.name || 'playlist'}".`);
+                const playlist = playlists.find(function(p) { return p.id === playlistId; });
+                showToast(`Removed from playlist "${playlist ? playlist.name : 'playlist'}".`);
             } catch (error) {
                 console.error("Error removing song from playlist:", error);
                 showToast("Error removing song.", 3000);
@@ -878,7 +850,7 @@
         }
 
         function showSongsForPlaylist(playlistId) {
-            const playlist = playlists.find(p => p.id === playlistId);
+            const playlist = playlists.find(function(p) { return p.id === playlistId; });
             if (!playlist) {
                 console.error("Playlist not found:", playlistId);
                 showPlaylistsList(); 
@@ -893,18 +865,19 @@
         }
         
         function renderSongsInPlaylist(playlistId) {
-            const playlist = playlists.find(p => p.id === playlistId);
+            const playlist = playlists.find(function(p) { return p.id === playlistId; });
             songsInPlaylistContainer.innerHTML = ''; 
             
-            const playlistSongsData = playlist?.songIds ? songs.filter(song => playlist.songIds.includes(song.id)) : [];
+            const playlistSongsData = (playlist && playlist.songIds) ? songs.filter(function(song) { return playlist.songIds.includes(song.id); }) : [];
             
-            noSongsInPlaylistMessage.classList.toggle('hidden', playlistSongsData.length === 0);
+            noSongsInPlaylistMessage.classList.toggle('hidden', playlistSongsData.length > 0);
             renderSongList(songsInPlaylistContainer, playlistSongsData, true, playlistId);
             
-            currentTracklist = isShuffle ? [...playlistSongsData].sort(() => Math.random() - 0.5) : [...playlistSongsData];
+            currentTracklist = isShuffle ? [...playlistSongsData].sort(function() { return Math.random() - 0.5; }) : [...playlistSongsData];
             originalOrderTracklist = [...playlistSongsData];
             
-            const stillPlayingValidSong = currentTracklist.some(s => s.id === (currentTracklist[currentSongIndex]?.id));
+            const currentSong = currentTracklist[currentSongIndex];
+            const stillPlayingValidSong = currentSong && currentTracklist.some(function(s) { return s.id === currentSong.id; });
 
             if (!stillPlayingValidSong) {
                 loadSong(0);
@@ -923,10 +896,10 @@
 
 
         // --- Initial Setup ---
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             initAuth(); 
         });
 
     </script>
 </body>
-
+</html>
