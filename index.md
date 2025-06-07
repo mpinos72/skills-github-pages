@@ -293,7 +293,6 @@
         let playlists = []; 
         let currentOpenPlaylistId = null;
         let lastPlaybackState = null;
-        let saveStateTimeout = null;
 
         // --- Toast Notification ---
         function showToast(message, duration) {
@@ -380,7 +379,7 @@
                     if (isPlaying) {
                         audioPlayer.play().catch(function(e) { console.error("Error playing loaded song:", e); });
                     }
-                    audioPlayer.oncanplaythrough = null; // Remove listener after it has run once
+                    audioPlayer.oncanplaythrough = null;
                 };
 
             } else {
@@ -424,7 +423,7 @@
             audioPlayer.pause();
             isPlaying = false;
             playPauseBtn.innerHTML = '<i class="fas fa-play fa-2x"></i>';
-            savePlaybackState(); // Save state on pause
+            savePlaybackState(); 
         }
 
         playPauseBtn.addEventListener('click', function() {
@@ -483,13 +482,6 @@
                 const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
                 progressBar.value = progress;
                 currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
-                // Throttled save of playback state
-                if (!saveStateTimeout) {
-                    saveStateTimeout = setTimeout(function() {
-                        savePlaybackState();
-                        saveStateTimeout = null;
-                    }, 5000); // Save every 5 seconds
-                }
             }
         });
 
@@ -638,8 +630,7 @@
             });
 
             currentOpenPlaylistId = null; 
-            let songToLoadIndex = -1;
-
+            
             if (tabName === 'library') {
                 document.getElementById('libraryView').classList.remove('hidden');
                 currentTracklist = isShuffle ? [...songs].sort(function() { return Math.random() - 0.5; }) : [...songs];
@@ -661,16 +652,18 @@
             
             if (options.isInitialLoad) {
                 const songIndex = lastPlaybackState ? songs.findIndex(function(s) { return s.id === lastPlaybackState.songId; }) : 0;
-                songToLoadIndex = songIndex !== -1 ? songIndex : 0;
+                const songToLoadIndex = songIndex !== -1 ? songIndex : 0;
                 loadSong(songToLoadIndex, { seekTime: lastPlaybackState ? lastPlaybackState.currentTime : 0 });
             } else {
-                const playingSongId = currentTracklist[currentSongIndex]?.id;
-                const songStillInList = currentTracklist.some(function(s) { return s.id === playingSongId; });
-                if (!songStillInList) {
-                    loadSong(0);
-                } else {
+                const playingSongId = audioPlayer.currentSrc ? songs.find(function(s){ return s.url === audioPlayer.currentSrc })?.id : null;
+                const songIndexInNewList = playingSongId ? currentTracklist.findIndex(function(s) { return s.id === playingSongId; }) : -1;
+                
+                if (songIndexInNewList !== -1) {
+                    currentSongIndex = songIndexInNewList;
                     updatePlayerHeader();
                     updateSelectedSongUI();
+                } else {
+                    loadSong(0);
                 }
             }
         }
@@ -683,6 +676,7 @@
             if (unsubscribeUserDoc) unsubscribeUserDoc(); 
 
             unsubscribeUserDoc = onSnapshot(dbUserDocRef, function(docSnap) {
+                let initialLoad = lastPlaybackState === null;
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     favoriteSongIds = data.favoriteSongIds || [];
@@ -693,7 +687,9 @@
                     console.log("User document does not exist yet for UID:", userId);
                 }
                 renderFavorites();
-                updateActiveTab('library', { isInitialLoad: true });
+                if (initialLoad) {
+                    updateActiveTab('library', { isInitialLoad: true });
+                }
             }, function(error) {
                 console.error("Error loading user document:", error);
                 showToast("Could not load user data.", 4000);
