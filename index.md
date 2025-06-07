@@ -633,20 +633,13 @@
             
             if (tabName === 'library') {
                 document.getElementById('libraryView').classList.remove('hidden');
-                currentTracklist = isShuffle ? [...songs].sort(function() { return Math.random() - 0.5; }) : [...songs];
-                originalOrderTracklist = [...songs];
-                renderSongList(libraryView, currentTracklist); 
+                renderSongList(libraryView, songs); 
             } else if (tabName === 'favorites') {
                 document.getElementById('favoritesView').classList.remove('hidden');
-                const favSongsData = songs.filter(function(s) { return favoriteSongIds.includes(s.id); });
-                currentTracklist = isShuffle ? [...favSongsData].sort(function() { return Math.random() - 0.5; }) : [...favSongsData];
-                originalOrderTracklist = [...favSongsData];
                 renderFavorites();
             } else if (tabName === 'playlists') {
                 document.getElementById('playlistsView').classList.remove('hidden');
                 singlePlaylistSongsView.classList.add('hidden'); 
-                currentTracklist = [];
-                originalOrderTracklist = [];
                 renderPlaylists();
             }
             
@@ -654,17 +647,6 @@
                 const songIndex = lastPlaybackState ? songs.findIndex(function(s) { return s.id === lastPlaybackState.songId; }) : 0;
                 const songToLoadIndex = songIndex !== -1 ? songIndex : 0;
                 loadSong(songToLoadIndex, { seekTime: lastPlaybackState ? lastPlaybackState.currentTime : 0 });
-            } else {
-                const playingSongId = audioPlayer.currentSrc ? songs.find(function(s){ return s.url === audioPlayer.currentSrc })?.id : null;
-                const songIndexInNewList = playingSongId ? currentTracklist.findIndex(function(s) { return s.id === playingSongId; }) : -1;
-                
-                if (songIndexInNewList !== -1) {
-                    currentSongIndex = songIndexInNewList;
-                    updatePlayerHeader();
-                    updateSelectedSongUI();
-                } else {
-                    loadSong(0);
-                }
             }
         }
 
@@ -974,4 +956,3 @@
 
     </script>
 </body>
-</html>
