@@ -139,16 +139,16 @@
             font-size: 1.125rem; /* lg */
             font-weight: 500;
             color: #fff;
-            padding: 0 1rem;
+            padding-left: 100%; /* Start off-screen to the right */
         }
         .scrolling {
             animation-name: marquee;
             animation-timing-function: linear;
-            animation-iteration-count: infinite;
+            animation-iteration-count: 1; /* Play animation only once */
         }
 
         @keyframes marquee {
-          from { transform: translateX(100%); }
+          from { transform: translateX(0); }
           to { transform: translateX(-100%); }
         }
     </style>
@@ -390,7 +390,7 @@
 
         let songs = [
             { id: 's1', title: 'Surah 1: Al-Fatiha', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/001.mp3', 
-              lyrics: `[00:01.00]In the name of Allah, the Entirely Merciful, the Especially Merciful.\n[00:18.00]\n[00:19.00][All] praise is [due] to Allah, Lord of the worlds \n[00:29.00]\n[00:30.00]The Entirely Merciful, the Especially Merciful,\n[00:38.00]\n[00:39.00]Sovereign of the Day of Recompense.\n[00:45.00]\n[00:46.00]It is You we worship and You we ask for help.\n[00:56.00]\n[00:57.00]Guide us to the straight path \n[01:05.00]\n[01:06.00]The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.\n[01:26.00] `},
+              lyrics: `[00:01.00]In the name of Allah, the Entirely Merciful, the Especially Merciful.\n[00:16.50]\n[00:17.00][All] praise is [due] to Allah, Lord of the worlds -\n[00:29.00]\n[00:29.50]The Entirely Merciful, the Especially Merciful,\n[00:38.00]\n[00:39.00]Sovereign of the Day of Recompense.\n[00:45.00]\n[00:46.00]It is You we worship and You we ask for help.\n[00:56.00]\n[00:57.00]Guide us to the straight path -\n[01:05.00]\n[01:06.00]The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.`},
             { id: 's2', title: 'Surah 2: Al-Baqarah', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/002.mp3',
               lyrics: `[00:01.00]Alif, Lam, Meem.\n[00:04.50]This is the Book about which there is no doubt...\n[00:07.50]...a guidance for those conscious of Allah -`},
             { id: 's3', title: 'Surah 3: Al-Imran', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/003.mp3', lyrics: ''},
@@ -976,12 +976,13 @@
         // --- Lyrics ---
         function parseLyrics(lyricsString) {
             parsedLyrics = [];
-            currentLyricText = ""; // Reset current lyric
+            currentLyricText = ""; 
             if (!lyricsString || lyricsString.trim() === '') {
                  lyricsDisplay.textContent = 'No lyrics available for this song.';
                  return;
             }
             const lines = lyricsString.split('\n');
+            const tempLyrics = [];
             lines.forEach(function(line) {
                 const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
                 if (match) {
@@ -990,37 +991,51 @@
                     const milliseconds = parseInt(match[3], 10);
                     const time = minutes * 60 + seconds + milliseconds / 1000;
                     const text = match[4].trim();
-                    parsedLyrics.push({ time: time, text: text });
+                    tempLyrics.push({ time: time, text: text });
                 }
+            });
+
+            tempLyrics.forEach(function(line, index) {
+                let nextEventTime = audioPlayer.duration || line.time + 10;
+                if (index + 1 < tempLyrics.length) {
+                    nextEventTime = tempLyrics[index + 1].time;
+                }
+                line.duration = nextEventTime - line.time;
+                parsedLyrics.push(line);
             });
         }
         
         function updateLyrics(currentTime) {
             if (parsedLyrics.length === 0) return;
             
-            let currentLine = "";
+            let activeLine = null;
             for (let i = parsedLyrics.length - 1; i >= 0; i--) {
                 if (currentTime >= parsedLyrics[i].time) {
-                    currentLine = parsedLyrics[i].text;
+                    activeLine = parsedLyrics[i];
                     break;
                 }
             }
             
-            if(currentLyricText !== currentLine) {
-                currentLyricText = currentLine;
-                lyricsDisplay.textContent = currentLine || '\u00A0'; // Use a non-breaking space for empty lines
+            const currentLineText = activeLine ? activeLine.text : "";
 
-                // Handle scrolling for long text
-                const containerWidth = lyricsContainer.offsetWidth;
-                const textWidth = lyricsDisplay.offsetWidth;
-                
+            if (currentLyricText !== currentLineText) {
+                currentLyricText = currentLineText;
+                lyricsDisplay.textContent = currentLineText || '\u00A0';
+
                 lyricsDisplay.classList.remove('scrolling');
                 lyricsDisplay.style.animation = 'none';
 
-                if (textWidth > containerWidth) {
-                    const duration = textWidth / 50; // Adjust 50 to control speed
-                    lyricsDisplay.style.animation = `marquee ${duration}s linear infinite`;
-                    lyricsDisplay.classList.add('scrolling');
+                if (activeLine && activeLine.text) {
+                     requestAnimationFrame(function() {
+                        const containerWidth = lyricsContainer.offsetWidth;
+                        const textWidth = lyricsDisplay.offsetWidth;
+
+                        if (textWidth > containerWidth) {
+                            const duration = activeLine.duration > 0.5 ? activeLine.duration : 0.5;
+                            lyricsDisplay.style.animation = `marquee ${duration}s linear`;
+                            lyricsDisplay.classList.add('scrolling');
+                        }
+                    });
                 }
             }
         }
