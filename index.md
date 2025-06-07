@@ -448,12 +448,11 @@
         }
 
         function updateNowPlayingIndicator() {
-            // Hide all indicators first
             document.querySelectorAll('.now-playing-indicator').forEach(function(indicator) {
-                indicator.classList.add('hidden');
+                indicator.style.display = 'none';
             });
+            headerNowPlayingIndicator.style.display = 'none';
 
-            // If playing, show indicators for the current song
             if (isPlaying) {
                 const currentSong = playbackTracklist[currentSongIndex];
                 if (currentSong) {
@@ -461,13 +460,11 @@
                     songItems.forEach(function(songItem){
                        const indicator = songItem.querySelector('.now-playing-indicator');
                         if (indicator) {
-                            indicator.classList.remove('hidden');
+                            indicator.style.display = 'flex';
                         }
                     });
-                    headerNowPlayingIndicator.classList.remove('hidden');
+                    headerNowPlayingIndicator.style.display = 'flex';
                 }
-            } else {
-                headerNowPlayingIndicator.classList.add('hidden');
             }
         }
 
@@ -651,7 +648,7 @@
 
                 songDiv.innerHTML = `
                     <div class="flex-grow flex items-center" data-action="play">
-                        <div class="now-playing-indicator hidden mr-2">
+                        <div class="now-playing-indicator mr-2" style="display: none;">
                            <span></span><span></span><span></span><span></span>
                         </div>
                         <div>
