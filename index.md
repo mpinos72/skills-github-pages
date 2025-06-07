@@ -341,26 +341,28 @@
         }
 
         // --- UI Logic ---
-        function updatePlayerHeader(options) {
-            options = options || {};
+        function updatePlayerHeader() {
             const songToDisplay = currentTracklist[currentSongIndex];
-            
-            let title = songToDisplay ? songToDisplay.title : "No Song Selected";
-            let artist = songToDisplay ? songToDisplay.artist : "---";
-            
-            if (options.view === 'favorites' && options.isEmpty) {
-                title = "No Songs in Favorites";
-                artist = "---";
-            } else if (options.view === 'playlists' && !currentOpenPlaylistId) {
-                title = "No Songs in Playlist";
-                artist = "---";
-            } else if (options.view === 'singlePlaylist' && options.isEmpty) {
-                title = "This Playlist is Empty";
-                artist = "---";
-            }
+            const activeTabButton = document.querySelector('.tab-button.tab-active');
+            const activeTab = activeTabButton ? activeTabButton.dataset.tab : 'library';
 
-            songTitleDisplay.textContent = title;
-            songArtistDisplay.textContent = artist;
+            if (songToDisplay) {
+                songTitleDisplay.textContent = songToDisplay.title;
+                songArtistDisplay.textContent = songToDisplay.artist;
+                return;
+            }
+            
+            // Handle empty states based on the active tab
+            if (activeTab === 'favorites') {
+                songTitleDisplay.textContent = "No Songs in Favorites";
+            } else if (activeTab === 'playlists' && !currentOpenPlaylistId) {
+                songTitleDisplay.textContent = "No Songs in Playlist";
+            } else if (activeTab === 'playlists' && currentOpenPlaylistId) {
+                songTitleDisplay.textContent = "This Playlist is Empty";
+            } else {
+                songTitleDisplay.textContent = "No Song Selected";
+            }
+            songArtistDisplay.textContent = "---";
         }
 
         // --- Audio Controls ---
@@ -625,15 +627,29 @@
                 renderSongList(libraryView, currentTracklist); 
             } else if (tabName === 'favorites') {
                 document.getElementById('favoritesView').classList.remove('hidden');
+                const favSongsData = songs.filter(function(s) { return favoriteSongIds.includes(s); });
+                currentTracklist = isShuffle ? [...favSongsData].sort(function() { return Math.random() - 0.5; }) : [...favSongsData];
+                originalOrderTracklist = [...favSongsData];
                 renderFavorites();
             } else if (tabName === 'playlists') {
                 document.getElementById('playlistsView').classList.remove('hidden');
                 singlePlaylistSongsView.classList.add('hidden'); 
+                currentTracklist = [];
+                originalOrderTracklist = [];
                 renderPlaylists();
             }
             
             if (options.isInitialLoad) {
                 loadSong(0);
+            } else {
+                const playingSongId = currentTracklist[currentSongIndex]?.id;
+                const songStillInList = currentTracklist.some(function(s) { return s.id === playingSongId; });
+                if (!songStillInList) {
+                    loadSong(0); // If current song is not in new view, load first song
+                } else {
+                    updatePlayerHeader();
+                    updateSelectedSongUI();
+                }
             }
         }
 
@@ -684,7 +700,11 @@
             const favSongsData = songs.filter(function(song) { return favoriteSongIds.includes(song.id); });
             noFavoritesMessage.classList.toggle('hidden', favSongsData.length > 0);
             renderSongList(favoritesView, favSongsData);
-            updatePlayerHeader({ view: 'favorites', isEmpty: favSongsData.length === 0 });
+
+            const activeTabButton = document.querySelector('.tab-button.tab-active');
+            if (activeTabButton && activeTabButton.dataset.tab === 'favorites') {
+                updatePlayerHeader();
+            }
             updateSelectedSongUI();
         }
 
@@ -778,7 +798,11 @@
                     myPlaylistsContainer.appendChild(div);
                 });
             }
-            updatePlayerHeader({ view: 'playlists', isEmpty: playlists.length === 0 });
+            
+            const activeTabButton = document.querySelector('.tab-button.tab-active');
+            if (activeTabButton && activeTabButton.dataset.tab === 'playlists' && !currentOpenPlaylistId) {
+                 updatePlayerHeader();
+            }
         }
 
         async function deletePlaylist(playlistId) {
