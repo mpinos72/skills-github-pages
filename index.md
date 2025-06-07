@@ -207,14 +207,12 @@
 
         // --- Firebase Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // PASTE YOUR ACTUAL FIREBASE CONFIG HERE
             apiKey: "AIzaSyDtGUyB9bpiL9JefwLnP0AEHg9G9QzFQAE",
-  authDomain: "audio-stream-player-4ed4d.firebaseapp.com",
-  projectId: "audio-stream-player-4ed4d",
-  storageBucket: "audio-stream-player-4ed4d.firebasestorage.app",
-  messagingSenderId: "498762969730",
-  appId: "1:498762969730:web:6474cbafe2ed2c8ef9ba9b",
-  measurementId: "G-SR6D3J302T"
+            authDomain: "audio-stream-player-4ed4d.firebaseapp.com",
+            projectId: "audio-stream-player-4ed4d",
+            storageBucket: "audio-stream-player-4ed4d.appspot.com",
+            messagingSenderId: "367344937225",
+            appId: "1:367344937225:web:5d2a731804b387e0a7e0f2"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'audio-player-default-app';
 
@@ -297,16 +295,17 @@
         let currentOpenPlaylistId = null;
 
         // --- Toast Notification ---
-        function showToast(message, duration = 3000) {
+        function showToast(message, duration) {
+            duration = duration || 3000;
             toastNotification.textContent = message;
             toastNotification.classList.add('show');
-            setTimeout(() => {
+            setTimeout(function() {
                 toastNotification.classList.remove('show');
             }, duration);
         }
 
         // --- Authentication and Data Loading ---
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, function(user) {
             if (user) {
                 userId = user.uid;
                 console.log("User authenticated with UID:", userId);
@@ -342,7 +341,8 @@
         }
 
         // --- UI Logic ---
-        function updatePlayerHeader(options = {}) {
+        function updatePlayerHeader(options) {
+            options = options || {};
             const songToDisplay = currentTracklist[currentSongIndex];
             
             let title = songToDisplay ? songToDisplay.title : "No Song Selected";
@@ -351,7 +351,7 @@
             if (options.view === 'favorites' && options.isEmpty) {
                 title = "No Songs in Favorites";
                 artist = "---";
-            } else if (options.view === 'playlists' && options.isEmpty && !currentOpenPlaylistId) {
+            } else if (options.view === 'playlists' && !currentOpenPlaylistId) {
                 title = "No Songs in Playlist";
                 artist = "---";
             } else if (options.view === 'singlePlaylist' && options.isEmpty) {
@@ -369,7 +369,7 @@
                 const song = currentTracklist[index];
                 currentSongIndex = index; 
                 audioPlayer.src = song.url;
-                if (isPlaying) audioPlayer.play().catch(e => console.error("Error playing loaded song:", e));
+                if (isPlaying) audioPlayer.play().catch(function(e) { console.error("Error playing loaded song:", e); });
             } else {
                 currentSongIndex = -1; 
                 audioPlayer.src = ''; 
@@ -395,11 +395,11 @@
             
             if (audioPlayer.src) {
                 audioPlayer.play()
-                    .then(() => {
+                    .then(function() {
                         isPlaying = true;
                         playPauseBtn.innerHTML = '<i class="fas fa-pause fa-2x"></i>';
                     })
-                    .catch(error => {
+                    .catch(function(error) {
                         console.error("Error playing audio:", error);
                         isPlaying = false;
                         playPauseBtn.innerHTML = '<i class="fas fa-play fa-2x"></i>';
@@ -413,7 +413,7 @@
             playPauseBtn.innerHTML = '<i class="fas fa-play fa-2x"></i>';
         }
 
-        playPauseBtn.addEventListener('click', () => {
+        playPauseBtn.addEventListener('click', function() {
             if (isPlaying) {
                 pauseSong();
             } else {
@@ -421,7 +421,7 @@
             }
         });
 
-        nextBtn.addEventListener('click', () => {
+        nextBtn.addEventListener('click', function() {
             if (currentTracklist.length === 0) return;
             let nextIndex = currentSongIndex + 1;
             if (nextIndex >= currentTracklist.length) {
@@ -430,7 +430,7 @@
             loadSong(nextIndex);
         });
 
-        prevBtn.addEventListener('click', () => {
+        prevBtn.addEventListener('click', function() {
             if (currentTracklist.length === 0) return;
             let prevIndex = currentSongIndex - 1;
             if (prevIndex < 0) {
@@ -439,7 +439,7 @@
             loadSong(prevIndex);
         });
 
-        loopBtn.addEventListener('click', () => {
+        loopBtn.addEventListener('click', function() {
             isLoop = !isLoop;
             audioPlayer.loop = isLoop; 
             loopBtn.classList.toggle('text-[#84cc16]', isLoop);
@@ -447,7 +447,7 @@
             showToast(isLoop ? "Loop current track enabled" : "Loop current track disabled");
         });
 
-        shuffleBtn.addEventListener('click', () => {
+        shuffleBtn.addEventListener('click', function() {
             isShuffle = !isShuffle;
             shuffleBtn.classList.toggle('text-[#84cc16]', isShuffle);
             shuffleBtn.classList.toggle('text-gray-400', !isShuffle);
@@ -464,7 +464,7 @@
         });
         
 
-        audioPlayer.addEventListener('timeupdate', () => {
+        audioPlayer.addEventListener('timeupdate', function() {
             if (audioPlayer.duration) {
                 const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
                 progressBar.value = progress;
@@ -472,33 +472,33 @@
             }
         });
 
-        audioPlayer.addEventListener('loadedmetadata', () => {
+        audioPlayer.addEventListener('loadedmetadata', function() {
             durationDisplay.textContent = formatTime(audioPlayer.duration);
             progressBar.value = 0; 
         });
         
-        audioPlayer.addEventListener('ended', () => {
+        audioPlayer.addEventListener('ended', function() {
             if (!audioPlayer.loop) {
                 nextBtn.click();
             }
         });
 
 
-        progressBar.addEventListener('input', () => {
+        progressBar.addEventListener('input', function(e) {
             if (audioPlayer.duration) {
-                const seekTime = (progressBar.value / 100) * audioPlayer.duration;
+                const seekTime = (e.target.value / 100) * audioPlayer.duration;
                 audioPlayer.currentTime = seekTime;
             }
         });
 
-        volumeCtrl.addEventListener('input', (e) => {
+        volumeCtrl.addEventListener('input', function(e) {
             audioPlayer.volume = e.target.value;
         });
 
         function formatTime(seconds) {
             const minutes = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
-            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+            return minutes + ':' + (secs < 10 ? '0' : '') + secs;
         }
 
         // --- Song List Rendering ---
@@ -509,11 +509,12 @@
                 return;
             }
 
-            tracklistToRender.forEach((song) => {
+            tracklistToRender.forEach(function(song) {
                 const songDiv = document.createElement('div');
                 songDiv.className = 'song-item p-3 flex justify-between items-center cursor-pointer hover:bg-gray-700 transition-colors duration-150';
                 
-                if (song.id === currentTracklist[currentSongIndex]?.id) {
+                const currentSong = currentTracklist[currentSongIndex];
+                if (currentSong && song.id === currentSong.id) {
                      songDiv.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
                 }
                 songDiv.dataset.songId = song.id;
@@ -538,7 +539,7 @@
                     </div>
                 `;
                 
-                songDiv.addEventListener('click', (e) => {
+                songDiv.addEventListener('click', function(e) {
                     const actionTarget = e.target.closest('button') || e.target.closest('[data-action="play"]');
                     if (!actionTarget) return;
 
@@ -556,7 +557,8 @@
                             playSong();
                         }
                     } else if (action === 'toggleFavorite') {
-                        toggleFavorite(clickedSongId);
+                        const icon = actionTarget.querySelector('i');
+                        toggleFavorite(clickedSongId, icon);
                     } else if (action === 'addToPlaylist') {
                         openAddToPlaylistModal(clickedSongId);
                     } else if (action === 'removeFromPlaylist') {
@@ -644,8 +646,7 @@
 
             unsubscribeUserDoc = onSnapshot(dbUserDocRef, function(docSnap) {
                 if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    favoriteSongIds = data.favoriteSongIds || [];
+                    favoriteSongIds = docSnap.data().favoriteSongIds || [];
                 } else {
                     favoriteSongIds = [];
                     console.log("User document does not exist yet for UID:", userId);
@@ -657,19 +658,23 @@
             });
         }
 
-        async function toggleFavorite(songId) {
+        async function toggleFavorite(songId, iconElement) {
             if (!userId || !dbUserDocRef) {
                 showToast("Cannot save favorite. Not connected.", 3000); return;
             }
             
+            // Optimistic UI Update
+            iconElement.classList.toggle('text-pink-500');
+
             const isCurrentlyFavorite = favoriteSongIds.includes(songId);
             const operation = isCurrentlyFavorite ? arrayRemove(songId) : arrayUnion(songId);
-            const newFavoriteStatus = !isCurrentlyFavorite;
-
+            
             try {
                 await setDoc(dbUserDocRef, { favoriteSongIds: operation }, { merge: true });
-                showToast(newFavoriteStatus ? "Added to Favorites" : "Removed from Favorites");
+                showToast(isCurrentlyFavorite ? "Removed from Favorites" : "Added to Favorites");
             } catch (error) {
+                // Revert UI on failure
+                iconElement.classList.toggle('text-pink-500');
                 console.error("Error updating favorites:", error);
                 showToast("Error saving favorite.", 3000);
             }
