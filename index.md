@@ -723,9 +723,20 @@
         
         window.addEventListener('beforeunload', savePlaybackState);
         
-        window.onAppScreenPause = function() {
-            pauseSong();
-        };
+        // --- Kodular Communication Bridge ---
+        if (window.AppInventor && window.AppInventor.getWebViewString) {
+            // Function to check for messages from Kodular
+            function checkForAppCommands() {
+                const command = window.AppInventor.getWebViewString();
+                if (command === "PAUSE_COMMAND") {
+                    pauseSong();
+                    // Clear the string so it doesn't get called again
+                    window.AppInventor.setWebViewString(""); 
+                }
+            }
+            // Check for commands periodically
+            setInterval(checkForAppCommands, 250);
+        }
 
 
         // --- Playlist Management ---
@@ -923,11 +934,11 @@
             noSongsInPlaylistMessage.classList.toggle('hidden', playlistSongsData.length > 0);
             renderSongList(songsInPlaylistContainer, playlistSongsData, true, playlistId);
             
-            currentTracklist = isShuffle ? [...playlistSongsData].sort(function() { return Math.random() - 0.5; }) : [...playlistSongsData];
-            originalOrderTracklist = [...playlistSongsData];
+            playbackTracklist = isShuffle ? [...playlistSongsData].sort(function() { return Math.random() - 0.5; }) : [...playlistSongsData];
+            originalPlaybackTracklist = [...playlistSongsData];
             
-            const currentSong = currentTracklist[currentSongIndex];
-            const stillPlayingValidSong = currentSong && currentTracklist.some(function(s) { return s.id === currentSong.id; });
+            const currentSong = playbackTracklist[currentSongIndex];
+            const stillPlayingValidSong = currentSong && playbackTracklist.some(function(s) { return s.id === currentSong.id; });
 
             if (!stillPlayingValidSong) {
                 loadSong(0);
