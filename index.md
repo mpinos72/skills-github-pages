@@ -656,7 +656,7 @@
                             <p class="text-sm text-gray-400 truncate">${song.artist}</p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-3 ml-2">
+                    <div class="flex items-center space-x-1">
                         <button data-action="toggleFavorite" data-song-id="${song.id}" class="text-gray-400 hover:text-pink-500 p-2 rounded-full focus:outline-none">
                             <i class="fas fa-heart ${favoriteSongIds.includes(song.id) ? 'text-pink-500' : ''}"></i>
                         </button>
