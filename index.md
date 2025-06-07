@@ -1,4 +1,3 @@
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -33,8 +32,8 @@
 
         .tab-active {
             border-bottom-width: 2px;
-            border-color: #3b82f6; /* blue-500 */
-            color: #3b82f6;
+            border-color: #066107; /* New green color */
+            color: #066107; /* New green color */
         }
         .modal {
             display: none; /* Hidden by default */
@@ -98,7 +97,7 @@
 
     <!-- Progress Bar and Time -->
     <div class="p-4 bg-gray-800">
-        <input type="range" id="progressBar" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+        <input type="range" id="progressBar" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#066107]">
         <div class="flex justify-between text-xs text-gray-400 mt-1">
             <span id="currentTime">0:00</span>
             <span id="duration">0:00</span>
@@ -107,19 +106,19 @@
 
     <!-- Player Controls -->
     <div class="p-4 bg-gray-800 flex items-center justify-around">
-        <button id="shuffleBtn" class="player-button text-gray-400 hover:text-blue-500"><i class="fas fa-random fa-lg"></i></button>
+        <button id="shuffleBtn" class="player-button text-gray-400 hover:text-[#066107]"><i class="fas fa-random fa-lg"></i></button>
         <button id="prevBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-backward fa-xl"></i></button>
-        <button id="playPauseBtn" class="player-button text-blue-500 hover:text-blue-400 bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center">
+        <button id="playPauseBtn" class="player-button text-[#066107] hover:text-[#055006] bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center">
             <i class="fas fa-play fa-2x"></i>
         </button>
         <button id="nextBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-forward fa-xl"></i></button>
-        <button id="loopBtn" class="player-button text-gray-400 hover:text-blue-500"><i class="fas fa-retweet fa-lg"></i></button> <!-- Using retweet as a loop icon -->
+        <button id="loopBtn" class="player-button text-gray-400 hover:text-[#066107]"><i class="fas fa-retweet fa-lg"></i></button> <!-- Using retweet as a loop icon -->
     </div>
 
     <!-- Volume Control -->
     <div class="px-4 pt-2 pb-4 bg-gray-800 flex items-center justify-center space-x-2">
         <i class="fas fa-volume-down text-gray-400"></i>
-        <input type="range" id="volumeCtrl" min="0" max="1" step="0.01" value="0.5" class="w-1/2 md:w-1/4 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+        <input type="range" id="volumeCtrl" min="0" max="1" step="0.01" value="0.5" class="w-1/2 md:w-1/4 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#066107]">
         <i class="fas fa-volume-up text-gray-400"></i>
     </div>
 
@@ -144,19 +143,19 @@
         <!-- Playlists View -->
         <div id="playlistsView" class="tab-content hidden">
             <div class="p-2">
-                <button id="createPlaylistBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg mb-2">
+                <button id="createPlaylistBtn" class="w-full bg-[#066107] hover:bg-[#044b05] text-white font-semibold py-2 px-4 rounded-lg mb-2">
                     <i class="fas fa-plus-circle mr-2"></i>Create New Playlist
                 </button>
                  <div id="myPlaylistsContainer">
                     <!-- Playlists will be listed here -->
                  </div>
-                 <p class="text-gray-500 text-center p-4 hidden" id="noPlaylistsMessage">No playlists created yet.</p>
+                 <p class="text-gray-500 text-center p-4 hidden" id="noPlaylistsMessage">There are no playlists. Create one first!</p>
             </div>
         </div>
         <!-- Single Playlist Songs View -->
         <div id="singlePlaylistSongsView" class="tab-content hidden">
              <div class="flex items-center justify-between p-2 border-b border-gray-700">
-                <button id="backToPlaylistsBtn" class="text-blue-500 hover:text-blue-400">
+                <button id="backToPlaylistsBtn" class="text-[#066107] hover:text-[#055006]">
                     <i class="fas fa-arrow-left mr-2"></i> Back to Playlists
                 </button>
                 <h3 id="currentPlaylistNameHeader" class="text-lg font-semibold">Playlist Songs</h3>
@@ -172,10 +171,10 @@
     <div id="createPlaylistModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Create New Playlist</h3>
-            <input type="text" id="newPlaylistName" placeholder="Playlist Name" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500 outline-none mb-4">
+            <input type="text" id="newPlaylistName" placeholder="Playlist Name" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-[#066107] outline-none mb-4">
             <div class="flex justify-end space-x-2">
                 <button id="cancelCreatePlaylistBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg">Cancel</button>
-                <button id="savePlaylistBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">Create</button>
+                <button id="savePlaylistBtn" class="bg-[#066107] hover:bg-[#044b05] text-white font-semibold py-2 px-4 rounded-lg">Create</button>
             </div>
         </div>
     </div>
@@ -210,13 +209,12 @@
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             // Fallback config if __firebase_config is not injected (for local testing)
             // PASTE YOUR ACTUAL FIREBASE CONFIG HERE
-            apiKey: "AIzaSyDtGUyB9bpiL9JefwLnP0AEHg9G9QzFQAE",
-  authDomain: "audio-stream-player-4ed4d.firebaseapp.com",
-  projectId: "audio-stream-player-4ed4d",
-  storageBucket: "audio-stream-player-4ed4d.firebasestorage.app",
-  messagingSenderId: "498762969730",
-  appId: "1:498762969730:web:6474cbafe2ed2c8ef9ba9b",
-  measurementId: "G-SR6D3J302T"
+            apiKey: "YOUR_API_KEY", 
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'audio-player-default-app';
 
@@ -228,9 +226,9 @@
         // setLogLevel('debug'); // Uncomment for Firestore debugging
 
         let userId = null;
-        let dbUserDocRef = null; // Changed from dbFavoritesRef, this will be the main user document
+        let dbUserDocRef = null;
         let dbPlaylistsCollectionRef = null;
-        let unsubscribeUserDoc = null; // Changed from unsubscribeFavorites
+        let unsubscribeUserDoc = null;
         let unsubscribePlaylists = null;
 
 
@@ -291,13 +289,13 @@
             { id: 's10', title: 'Surah 10: Yunus', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/010.mp3'}
         ];
 
-        let currentSongIndex = 0;
+        let currentSongIndex = 0; // Start with the first song selected
         let isPlaying = false;
         let isShuffle = false;
         let isLoop = false;
         let currentTracklist = [...songs]; 
         let originalOrderTracklist = [...songs]; 
-        let favoriteSongIds = []; // Renamed from 'favorites'
+        let favoriteSongIds = [];
         let playlists = []; 
         let currentOpenPlaylistId = null;
 
@@ -315,26 +313,22 @@
             if (user) {
                 userId = user.uid;
                 console.log("User authenticated with UID:", userId);
-                // Path to the user's specific document: artifacts/{appId}/users/{userId}
                 dbUserDocRef = doc(db, "artifacts", appId, "users", userId);
-                // Path to the playlists subcollection for this user: artifacts/{appId}/users/{userId}/playlists
                 dbPlaylistsCollectionRef = collection(dbUserDocRef, "playlists");
                 
-                loadUserDocumentData(); // Loads favorites and potentially other user-specific settings
+                loadUserDocumentData();
                 loadPlaylists();
             } else {
                 userId = null;
                 console.log("User not authenticated. Player data will not be saved.");
                 if (unsubscribeUserDoc) unsubscribeUserDoc();
                 if (unsubscribePlaylists) unsubscribePlaylists();
-                favoriteSongIds = []; // Reset local data
+                favoriteSongIds = []; 
                 playlists = [];
-                renderFavorites(); // Update UI
+                renderFavorites();
                 renderPlaylists();
             }
             // Initial UI setup after auth state is known (or not known)
-            loadSong(currentSongIndex); 
-            renderSongList(libraryView, songs); 
             updateActiveTab('library');
         });
 
@@ -348,54 +342,79 @@
             } catch (error) {
                 console.error("Authentication error:", error);
                 showToast("Error connecting to services. Data might not save.", 5000);
-                if (!userId) { // If auth fails and user still not set
-                    userId = 'tempUser_' + Date.now(); // Fallback, but data won't persist correctly
+                if (!userId) { 
+                    userId = 'tempUser_' + Date.now();
                     console.warn("Using temporary non-persistent user ID due to auth failure:", userId);
-                    // Setup refs with temp ID, mostly for local UI testing without real persistence
                     dbUserDocRef = doc(db, "artifacts", appId, "users", userId);
                     dbPlaylistsCollectionRef = collection(dbUserDocRef, "playlists");
-                    // Attempt to load UI elements even if data won't save
-                    loadSong(currentSongIndex);
-                    renderSongList(libraryView, songs);
                     updateActiveTab('library');
                 }
             }
         }
 
+        // --- UI Logic ---
+        function updatePlayerHeader() {
+            const activeTab = document.querySelector('.tab-button.tab-active')?.dataset.tab;
+            const songToDisplay = currentTracklist[currentSongIndex];
+
+            // Default to showing the currently selected song
+            let title = songToDisplay ? songToDisplay.title : "No Song Selected";
+            let artist = songToDisplay ? songToDisplay.artist : "---";
+
+            // Override with contextual messages if the current view is an empty state
+            if (activeTab === 'favorites' && favoriteSongIds.length === 0) {
+                title = "No Songs in Favorites";
+                artist = "---";
+            } else if (activeTab === 'playlists') {
+                if (!currentOpenPlaylistId) {
+                    // When on the main list of playlists, show the user's requested message
+                    title = "No Songs in Playlist"; // Per user request
+                    artist = "---";
+                } else {
+                    // When inside a playlist, check if THAT playlist is empty
+                    const p = playlists.find(pl => pl.id === currentOpenPlaylistId);
+                    if (p && (!p.songIds || p.songIds.length === 0)) {
+                        title = "This Playlist is Empty";
+                        artist = "---";
+                    }
+                }
+            }
+
+            songTitleDisplay.textContent = title;
+            songArtistDisplay.textContent = artist;
+        }
 
         // --- Audio Controls ---
         function loadSong(index) {
             if (index >= 0 && index < currentTracklist.length) {
                 const song = currentTracklist[index];
-                audioPlayer.src = song.url;
-                songTitleDisplay.textContent = song.title;
-                songArtistDisplay.textContent = song.artist;
                 currentSongIndex = index; 
+                audioPlayer.src = song.url;
+                updatePlayerHeader();
                 updateSelectedSongUI();
                 if (isPlaying) audioPlayer.play().catch(e => console.error("Error playing loaded song:", e));
             } else {
-                console.warn("Invalid song index:", index, "Tracklist length:", currentTracklist.length);
-                if (isLoop && currentTracklist.length > 0) { 
-                    currentSongIndex = 0;
-                    loadSong(currentSongIndex);
-                    if (isPlaying) playSong();
-                } else {
-                    pauseSong(); 
-                    currentSongIndex = 0; 
-                    if (currentTracklist.length > 0) loadSong(currentSongIndex); 
-                    else { // No songs in tracklist
-                        songTitleDisplay.textContent = "No Songs in Playlist";
-                        songArtistDisplay.textContent = "---";
-                    }
-                }
+                currentSongIndex = -1; 
+                audioPlayer.src = ''; 
+                pauseSong();
+                updatePlayerHeader(); 
+                updateSelectedSongUI();
             }
         }
 
         function playSong() {
-            if (!audioPlayer.src && currentTracklist.length > 0) {
-                loadSong(currentSongIndex); // Ensure song is loaded if src is missing
+            if (currentTracklist.length === 0) {
+                 showToast("No song to play.", 3000);
+                 return;
             }
-            if (audioPlayer.src) { // Only play if there's a source
+            if (currentSongIndex === -1) {
+                currentSongIndex = 0;
+            }
+            if (!audioPlayer.src) {
+                loadSong(currentSongIndex);
+            }
+            
+            if (audioPlayer.src) {
                 audioPlayer.play()
                     .then(() => {
                         isPlaying = true;
@@ -407,8 +426,6 @@
                         isPlaying = false;
                         playPauseBtn.innerHTML = '<i class="fas fa-play fa-2x"></i>';
                     });
-            } else {
-                showToast("No song to play.", 3000);
             }
         }
 
@@ -427,60 +444,55 @@
         });
 
         nextBtn.addEventListener('click', () => {
+            if (currentTracklist.length === 0) return;
             let nextIndex = currentSongIndex + 1;
             if (nextIndex >= currentTracklist.length) {
-                if (currentTracklist.length > 0) nextIndex = 0; 
-                else return; // No songs to play
+                nextIndex = 0; 
             }
             loadSong(nextIndex);
         });
 
         prevBtn.addEventListener('click', () => {
+            if (currentTracklist.length === 0) return;
             let prevIndex = currentSongIndex - 1;
             if (prevIndex < 0) {
-                if (currentTracklist.length > 0) prevIndex = currentTracklist.length - 1;
-                else return; // No songs to play
+                prevIndex = currentTracklist.length - 1;
             }
             loadSong(prevIndex);
         });
 
         loopBtn.addEventListener('click', () => {
             isLoop = !isLoop;
-            // HTML5 audio 'loop' attribute is for single track. 
-            // Playlist loop is handled by 'ended' event and nextBtn logic.
             audioPlayer.loop = isLoop; 
-            loopBtn.classList.toggle('text-blue-500', isLoop);
+            loopBtn.classList.toggle('text-[#066107]', isLoop);
             loopBtn.classList.toggle('text-gray-400', !isLoop);
             showToast(isLoop ? "Loop current track enabled" : "Loop current track disabled");
         });
 
         shuffleBtn.addEventListener('click', () => {
             isShuffle = !isShuffle;
-            shuffleBtn.classList.toggle('text-blue-500', isShuffle);
+            shuffleBtn.classList.toggle('text-[#066107]', isShuffle);
             shuffleBtn.classList.toggle('text-gray-400', !isShuffle);
             
             const currentPlayingSongId = currentTracklist[currentSongIndex]?.id;
 
             if (isShuffle) {
-                originalOrderTracklist = [...currentTracklist]; // Save the order before shuffle
+                originalOrderTracklist = [...currentTracklist];
                 currentTracklist.sort(() => Math.random() - 0.5);
                 showToast("Shuffle enabled");
             } else {
-                currentTracklist = [...originalOrderTracklist]; // Revert to original order
+                currentTracklist = [...originalOrderTracklist];
                 showToast("Shuffle disabled");
             }
             
-            // Find the new index of the currently playing song
-            const newIdx = currentTracklist.findIndex(s => s.id === currentPlayingSongId);
-            currentSongIndex = (newIdx !== -1) ? newIdx : 0; // Fallback to first song if not found
+            const newIdx = currentPlayingSongId ? currentTracklist.findIndex(s => s.id === currentPlayingSongId) : -1;
+            currentSongIndex = (newIdx !== -1) ? newIdx : (currentTracklist.length > 0 ? 0 : -1);
             
             const activeTab = document.querySelector('.tab-button.tab-active').dataset.tab;
             if (activeTab === 'library') renderSongList(libraryView, currentTracklist);
-            else if (activeTab === 'favorites') renderFavorites(); // This will re-filter and re-render
-            else if (activeTab === 'playlists' && currentOpenPlaylistId) renderSongsInPlaylist(currentOpenPlaylistId); // This will re-filter and re-render
+            else if (activeTab === 'favorites') renderFavorites();
+            else if (activeTab === 'playlists' && currentOpenPlaylistId) renderSongsInPlaylist(currentOpenPlaylistId);
             
-            // No need to call loadSong() here unless we want to immediately change the displayed info
-            // The actual audio source doesn't change until next/prev or new song click
             updateSelectedSongUI(); 
         });
         
@@ -499,7 +511,7 @@
         });
         
         audioPlayer.addEventListener('ended', () => {
-            if (!audioPlayer.loop) { // If single track loop is OFF
+            if (!audioPlayer.loop) {
                 nextBtn.click();
             }
         });
@@ -530,13 +542,12 @@
                 return;
             }
 
-            tracklistToRender.forEach((song) => { // Removed index, not directly used here
+            tracklistToRender.forEach((song) => {
                 const songDiv = document.createElement('div');
                 songDiv.className = 'song-item p-3 flex justify-between items-center cursor-pointer hover:bg-gray-700 transition-colors duration-150';
                 
-                // Check if this song from tracklistToRender is the currently playing song in the global currentTracklist
                 if (song.id === currentTracklist[currentSongIndex]?.id ) {
-                     songDiv.classList.add('selected', 'border-l-4', 'border-blue-500');
+                     songDiv.classList.add('selected', 'border-l-4', 'border-[#066107]');
                 }
                 songDiv.dataset.songId = song.id;
 
@@ -553,7 +564,7 @@
                             `<button data-action="removeFromPlaylist" data-song-id="${song.id}" data-playlist-id="${playlistIdForContext}" class="text-gray-400 hover:text-red-500 p-2 rounded-full focus:outline-none">
                                 <i class="fas fa-trash-alt"></i>
                             </button>` :
-                            `<button data-action="addToPlaylist" data-song-id="${song.id}" class="text-gray-400 hover:text-blue-500 p-2 rounded-full focus:outline-none">
+                            `<button data-action="addToPlaylist" data-song-id="${song.id}" class="text-gray-400 hover:text-[#066107] p-2 rounded-full focus:outline-none">
                                 <i class="fas fa-plus-circle"></i>
                             </button>`
                         }
@@ -568,17 +579,15 @@
                     const clickedSongId = songDiv.dataset.songId;
 
                     if (action === 'play') {
-                        // Update currentTracklist to reflect the list this song was clicked from
                         currentTracklist = [...tracklistToRender]; 
-                        originalOrderTracklist = [...tracklistToRender]; // For unshuffle
+                        originalOrderTracklist = [...tracklistToRender];
                         if(isShuffle) { 
                              currentTracklist = [...originalOrderTracklist].sort(() => Math.random() - 0.5);
                         }
                         const songIndexInClickedList = currentTracklist.findIndex(s => s.id === clickedSongId);
 
                         if (songIndexInClickedList !== -1) {
-                            currentSongIndex = songIndexInClickedList;
-                            loadSong(currentSongIndex);
+                            loadSong(songIndexInClickedList);
                             playSong();
                         }
                     } else if (action === 'toggleFavorite') {
@@ -589,7 +598,6 @@
                         const playlistId = actionTarget.dataset.playlistId;
                         removeSongFromPlaylist(clickedSongId, playlistId);
                     }
-                    updateSelectedSongUI(); 
                 });
                 container.appendChild(songDiv);
             });
@@ -597,29 +605,25 @@
         
         function updateSelectedSongUI() {
             document.querySelectorAll('.song-item').forEach(item => {
-                item.classList.remove('selected', 'border-l-4', 'border-blue-500');
+                item.classList.remove('selected', 'border-l-4', 'border-[#066107]');
                 const songId = item.dataset.songId;
                 
-                // Highlight if the item's song ID matches the current song in the global currentTracklist
                 if (songId === currentTracklist[currentSongIndex]?.id) {
                     const parentView = item.closest('.tab-content');
+                    if (!parentView) return;
                     const activeTab = document.querySelector('.tab-button.tab-active').dataset.tab;
                     let isActiveViewItem = false;
 
-                    if (activeTab === 'library' && parentView?.id === 'libraryView') isActiveViewItem = true;
-                    if (activeTab === 'favorites' && parentView?.id === 'favoritesView') isActiveViewItem = true;
-                    if (activeTab === 'playlists') { 
-                        if (currentOpenPlaylistId && parentView?.id === 'singlePlaylistSongsView') isActiveViewItem = true;
-                    }
+                    if (activeTab === 'library' && parentView.id === 'libraryView') isActiveViewItem = true;
+                    if (activeTab === 'favorites' && parentView.id === 'favoritesView') isActiveViewItem = true;
+                    if (activeTab === 'playlists' && currentOpenPlaylistId && parentView.id === 'singlePlaylistSongsView') isActiveViewItem = true;
 
                     if(isActiveViewItem){
-                        item.classList.add('selected', 'border-l-4', 'border-blue-500');
-                        // item.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); // Can be jerky, consider enabling if really needed
+                        item.classList.add('selected', 'border-l-4', 'border-[#066107]');
                     }
                 }
             });
         }
-
 
         // --- Tab Navigation ---
         const tabButtons = document.querySelectorAll('.tab-button');
@@ -645,20 +649,18 @@
 
             if (tabName === 'library') {
                 document.getElementById('libraryView').classList.remove('hidden');
-                currentTracklist = isShuffle ? [...songs].sort(() => Math.random() - 0.5) : [...songs];
-                originalOrderTracklist = [...songs];
-                renderSongList(libraryView, currentTracklist);
+                renderSongList(libraryView, songs); 
             } else if (tabName === 'favorites') {
                 document.getElementById('favoritesView').classList.remove('hidden');
-                renderFavorites(); // This will also set currentTracklist if favorites are shown
+                renderFavorites();
             } else if (tabName === 'playlists') {
                 document.getElementById('playlistsView').classList.remove('hidden');
                 singlePlaylistSongsView.classList.add('hidden'); 
                 renderPlaylists();
             }
+            updatePlayerHeader();
             updateSelectedSongUI();
         }
-
 
         // --- Favorites Management (Uses dbUserDocRef) ---
         async function loadUserDocumentData() {
@@ -673,19 +675,16 @@
                     favoriteSongIds = data.favoriteSongIds || [];
                 } else {
                     favoriteSongIds = [];
-                    // User document doesn't exist yet, it will be created on first favorite.
                     console.log("User document does not exist yet for UID:", userId);
                 }
-                renderFavorites(); // Update the favorites view
-                // Re-render any visible song list to update heart icons
+                renderFavorites();
                 const activeTabButton = document.querySelector('.tab-button.tab-active');
                 if (!activeTabButton) return;
                 const activeTab = activeTabButton.dataset.tab;
 
-                if (activeTab === 'library') renderSongList(libraryView, currentTracklist);
+                if (activeTab === 'library') renderSongList(libraryView, songs);
                 else if (activeTab === 'playlists' && currentOpenPlaylistId) renderSongsInPlaylist(currentOpenPlaylistId);
                 updateSelectedSongUI();
-
             }, (error) => {
                 console.error("Error loading user document (favorites):", error);
                 showToast("Could not load favorites.", 4000);
@@ -704,14 +703,8 @@
             const newFavoriteStatus = !isCurrentlyFavorite;
 
             try {
-                // Use setDoc with merge: true to create the document if it doesn't exist,
-                // or update it if it does.
-                await setDoc(dbUserDocRef, { 
-                    favoriteSongIds: operation 
-                }, { merge: true });
-
+                await setDoc(dbUserDocRef, { favoriteSongIds: operation }, { merge: true });
                 showToast(newFavoriteStatus ? "Added to Favorites" : "Removed from Favorites");
-                // onSnapshot (unsubscribeUserDoc) will trigger UI updates for favorites list and icons.
             } catch (error) {
                 console.error("Error updating favorites:", error);
                 showToast("Error saving favorite.", 3000);
@@ -722,20 +715,15 @@
             const favSongsData = songs.filter(song => favoriteSongIds.includes(song.id));
             noFavoritesMessage.classList.toggle('hidden', favSongsData.length > 0);
             renderSongList(favoritesView, favSongsData);
-            // If favorites tab is active, set its songs as the current tracklist
-             if (document.getElementById('favoritesView').classList.contains('hidden') === false) {
-                currentTracklist = isShuffle ? [...favSongsData].sort(() => Math.random() - 0.5) : [...favSongsData];
-                originalOrderTracklist = [...favSongsData]; // For unshuffle
-                if (favSongsData.length === 0) { // If favorites become empty while viewing
-                    songTitleDisplay.textContent = "No Songs in Favorites";
-                    songArtistDisplay.textContent = "---";
-                    pauseSong();
-                } else if (!favSongsData.find(s => s.id === currentTracklist[currentSongIndex]?.id)){
-                    // If current playing song was removed from favorites, load first fav song
-                    currentSongIndex = 0;
-                    loadSong(currentSongIndex);
+            
+            if (document.getElementById('favoritesView').classList.contains('hidden') === false) {
+                const stillPlayingValidSong = currentTracklist.some(s => s.id === (currentTracklist[currentSongIndex]?.id));
+
+                if (!stillPlayingValidSong && favSongsData.length > 0) {
+                    loadSong(0);
                 }
             }
+            updatePlayerHeader();
             updateSelectedSongUI();
         }
 
@@ -761,12 +749,11 @@
             try {
                 await addDoc(dbPlaylistsCollectionRef, {
                     name: playlistName,
-                    songIds: [], // Initialize with an empty array of song IDs
-                    createdAt: new Date() // Optional: timestamp for sorting
+                    songIds: [],
+                    createdAt: new Date()
                 });
                 createPlaylistModal.classList.remove('active');
                 showToast(`Playlist "${playlistName}" created.`);
-                // onSnapshot (unsubscribePlaylists) will handle UI update
             } catch (error) {
                 console.error("Error creating playlist:", error);
                 showToast("Error creating playlist.", 3000);
@@ -779,21 +766,19 @@
             }
             if (unsubscribePlaylists) unsubscribePlaylists();
 
-            // Query playlists, optionally order by name or creation date if you add one
-            const q = query(dbPlaylistsCollectionRef /*, orderBy("name") // Requires composite index */);
+            const q = query(dbPlaylistsCollectionRef);
             unsubscribePlaylists = onSnapshot(q, (querySnapshot) => {
                 playlists = [];
                 querySnapshot.forEach((doc) => {
                     playlists.push({ id: doc.id, ...doc.data() });
                 });
-                // Sort playlists by name client-side if not ordered by Firestore query
                 playlists.sort((a,b) => a.name.localeCompare(b.name));
 
                 renderPlaylists();
                 if (currentOpenPlaylistId) {
                     const stillExists = playlists.find(p => p.id === currentOpenPlaylistId);
                     if (stillExists) {
-                        renderSongsInPlaylist(currentOpenPlaylistId); // Refresh songs if playlist data changed
+                        renderSongsInPlaylist(currentOpenPlaylistId);
                     } else { 
                         showPlaylistsList(); 
                         currentOpenPlaylistId = null;
@@ -825,7 +810,6 @@
                         const buttonTarget = e.target.closest('button[data-action="delete-playlist"]');
                         if (buttonTarget) {
                             const playlistId = buttonTarget.dataset.playlistId;
-                            // Custom modal for confirm would be better
                             if (confirm(`Are you sure you want to delete the playlist "${playlist.name}"? This cannot be undone.`)) {
                                 deletePlaylist(playlistId);
                             }
@@ -845,7 +829,6 @@
             try {
                 await deleteDoc(doc(dbPlaylistsCollectionRef, playlistId));
                 showToast("Playlist deleted.");
-                // onSnapshot will update the UI. If this playlist was open, it will be handled.
             } catch (error) {
                 console.error("Error deleting playlist:", error);
                 showToast("Error deleting playlist.", 3000);
@@ -866,7 +849,7 @@
                     pDiv.className = 'p-2 border-b border-gray-700 flex justify-between items-center last:border-b-0';
                     pDiv.innerHTML = `
                         <span class="truncate">${playlist.name}</span>
-                        <button data-playlist-id="${playlist.id}" ${isSongInPlaylist ? 'disabled class="text-gray-500 cursor-not-allowed p-1 rounded"' : 'class="text-blue-500 hover:text-blue-400 p-1 rounded"'}">
+                        <button data-playlist-id="${playlist.id}" ${isSongInPlaylist ? 'disabled class="text-gray-500 cursor-not-allowed p-1 rounded"' : 'class="text-[#066107] hover:text-[#055006] p-1 rounded"'}">
                             ${isSongInPlaylist ? '<i class="fas fa-check-circle mr-1"></i> Added' : '<i class="fas fa-plus-circle mr-1"></i> Add'}
                         </button>
                     `;
@@ -889,13 +872,9 @@
             }
             const playlistRef = doc(dbPlaylistsCollectionRef, playlistId);
             try {
-                // Use arrayUnion to add the songId if it's not already present
-                await updateDoc(playlistRef, {
-                    songIds: arrayUnion(songId)
-                });
+                await updateDoc(playlistRef, { songIds: arrayUnion(songId) });
                 const playlist = playlists.find(p => p.id === playlistId);
                 showToast(`Added to playlist "${playlist?.name || 'playlist'}".`);
-                // onSnapshot will handle UI refresh
             } catch (error) {
                 console.error("Error adding song to playlist:", error);
                 showToast("Error adding song to playlist.", 3000);
@@ -908,13 +887,9 @@
             }
             const playlistRef = doc(dbPlaylistsCollectionRef, playlistId);
             try {
-                // Use arrayRemove to remove the songId
-                await updateDoc(playlistRef, {
-                    songIds: arrayRemove(songId)
-                });
+                await updateDoc(playlistRef, { songIds: arrayRemove(songId) });
                 const playlist = playlists.find(p => p.id === playlistId);
                 showToast(`Removed from playlist "${playlist?.name || 'playlist'}".`);
-                // onSnapshot handles UI update.
             } catch (error) {
                 console.error("Error removing song from playlist:", error);
                 showToast("Error removing song.", 3000);
@@ -928,44 +903,31 @@
                 showPlaylistsList(); 
                 return;
             }
-            currentOpenPlaylistId = playlistId; // Set this before rendering
+            currentOpenPlaylistId = playlistId;
 
             document.getElementById('playlistsView').classList.add('hidden');
             singlePlaylistSongsView.classList.remove('hidden');
             currentPlaylistNameHeader.textContent = playlist.name;
-            renderSongsInPlaylist(playlistId); // This will now correctly set currentTracklist
+            renderSongsInPlaylist(playlistId);
         }
         
         function renderSongsInPlaylist(playlistId) {
             const playlist = playlists.find(p => p.id === playlistId);
-            songsInPlaylistContainer.innerHTML = ''; // Clear previous
-
-            if (!playlist || !playlist.songIds || playlist.songIds.length === 0) { 
-                noSongsInPlaylistMessage.classList.remove('hidden');
-                currentTracklist = []; // Clear tracklist if playlist is empty
-                originalOrderTracklist = [];
-                loadSong(0); // Attempt to load "no song" state
-                return;
-            }
-            noSongsInPlaylistMessage.classList.add('hidden');
+            songsInPlaylistContainer.innerHTML = ''; 
             
-            const playlistSongsData = songs.filter(song => playlist.songIds.includes(song.id));
+            const playlistSongsData = playlist?.songIds ? songs.filter(song => playlist.songIds.includes(song.id)) : [];
+            
+            noSongsInPlaylistMessage.classList.toggle('hidden', playlistSongsData.length > 0);
             renderSongList(songsInPlaylistContainer, playlistSongsData, true, playlistId);
-
-            // If this playlist view is active, set its songs as the current tracklist
+            
             if (singlePlaylistSongsView.classList.contains('hidden') === false) {
-                currentTracklist = isShuffle ? [...playlistSongsData].sort(() => Math.random() - 0.5) : [...playlistSongsData];
-                originalOrderTracklist = [...playlistSongsData]; 
+                const stillPlayingValidSong = currentTracklist.some(s => s.id === (currentTracklist[currentSongIndex]?.id));
 
-                // If current song is not in this new tracklist, or tracklist became empty
-                if (!currentTracklist.find(s => s.id === currentTracklist[currentSongIndex]?.id)) {
-                    currentSongIndex = 0; // Reset to first song of this playlist
-                    loadSong(currentSongIndex); // Load it (will handle empty tracklist inside)
-                } else {
-                    // If current song IS in new tracklist, ensure index is correct for this tracklist
-                    currentSongIndex = currentTracklist.findIndex(s => s.id === currentTracklist[currentSongIndex]?.id);
+                if (!stillPlayingValidSong) {
+                    loadSong(0);
                 }
             }
+            updatePlayerHeader();
             updateSelectedSongUI();
         }
 
@@ -975,24 +937,19 @@
         function showPlaylistsList() {
             singlePlaylistSongsView.classList.add('hidden');
             document.getElementById('playlistsView').classList.remove('hidden');
-            currentOpenPlaylistId = null; // Clear the open playlist context
-            // Revert tracklist to library view when going back to the list of playlists
-            // This makes navigation more predictable.
+            currentOpenPlaylistId = null; 
+            
             const librarySongs = isShuffle ? [...songs].sort(() => Math.random() - 0.5) : [...songs];
             if (JSON.stringify(currentTracklist) !== JSON.stringify(librarySongs)) {
                  currentTracklist = librarySongs;
                  originalOrderTracklist = [...songs];
-                 // currentSongIndex should ideally point to the song that was playing from library, or default
-                 // For simplicity, let's find current displayed song or default to 0
+
                  const playingSongId = audioPlayer.src ? songs.find(s => s.url === audioPlayer.src)?.id : null;
-                 let newIndex = 0;
-                 if(playingSongId) {
-                    const idxInLibrary = currentTracklist.findIndex(s => s.id === playingSongId);
-                    if(idxInLibrary !== -1) newIndex = idxInLibrary;
-                 }
-                 currentSongIndex = newIndex;
-                 loadSong(currentSongIndex); // Visually update displayed song if tracklist changed
+                 let newIndex = playingSongId ? currentTracklist.findIndex(s => s.id === playingSongId) : 0;
+                 
+                 loadSong(newIndex);
             }
+            updatePlayerHeader();
             updateSelectedSongUI(); 
         }
 
@@ -1005,4 +962,3 @@
     </script>
 </body>
 </html>
-
