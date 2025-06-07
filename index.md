@@ -328,8 +328,8 @@
                 renderFavorites();
                 renderPlaylists();
             }
-            // Initial UI setup after auth state is known (or not known)
-            updateActiveTab('library');
+            // Initial UI setup after auth state is known
+            updateActiveTab('library', { isInitialLoad: true });
         });
 
         async function initAuth() {
@@ -347,37 +347,27 @@
                     console.warn("Using temporary non-persistent user ID due to auth failure:", userId);
                     dbUserDocRef = doc(db, "artifacts", appId, "users", userId);
                     dbPlaylistsCollectionRef = collection(dbUserDocRef, "playlists");
-                    updateActiveTab('library');
+                    updateActiveTab('library', { isInitialLoad: true });
                 }
             }
         }
 
         // --- UI Logic ---
-        function updatePlayerHeader() {
-            const activeTab = document.querySelector('.tab-button.tab-active')?.dataset.tab;
+        function updatePlayerHeader(options = {}) {
             const songToDisplay = currentTracklist[currentSongIndex];
-
-            // Default to showing the currently selected song
+            
             let title = songToDisplay ? songToDisplay.title : "No Song Selected";
             let artist = songToDisplay ? songToDisplay.artist : "---";
-
-            // Override with contextual messages if the current view is an empty state
-            if (activeTab === 'favorites' && favoriteSongIds.length === 0) {
+            
+            if (options.view === 'favorites' && options.isEmpty) {
                 title = "No Songs in Favorites";
                 artist = "---";
-            } else if (activeTab === 'playlists') {
-                if (!currentOpenPlaylistId) {
-                    // When on the main list of playlists, show the user's requested message
-                    title = "No Songs in Playlist"; // Per user request
-                    artist = "---";
-                } else {
-                    // When inside a playlist, check if THAT playlist is empty
-                    const p = playlists.find(pl => pl.id === currentOpenPlaylistId);
-                    if (p && (!p.songIds || p.songIds.length === 0)) {
-                        title = "This Playlist is Empty";
-                        artist = "---";
-                    }
-                }
+            } else if (options.view === 'playlists' && options.isEmpty) {
+                title = "No Songs in Playlist";
+                artist = "---";
+            } else if (options.view === 'singlePlaylist' && options.isEmpty) {
+                title = "This Playlist is Empty";
+                artist = "---";
             }
 
             songTitleDisplay.textContent = title;
@@ -390,16 +380,14 @@
                 const song = currentTracklist[index];
                 currentSongIndex = index; 
                 audioPlayer.src = song.url;
-                updatePlayerHeader();
-                updateSelectedSongUI();
                 if (isPlaying) audioPlayer.play().catch(e => console.error("Error playing loaded song:", e));
             } else {
                 currentSongIndex = -1; 
                 audioPlayer.src = ''; 
                 pauseSong();
-                updatePlayerHeader(); 
-                updateSelectedSongUI();
             }
+            updatePlayerHeader(); 
+            updateSelectedSongUI();
         }
 
         function playSong() {
@@ -410,7 +398,7 @@
             if (currentSongIndex === -1) {
                 currentSongIndex = 0;
             }
-            if (!audioPlayer.src) {
+            if (!audioPlayer.src || audioPlayer.currentSrc !== currentTracklist[currentSongIndex].url) {
                 loadSong(currentSongIndex);
             }
             
@@ -474,26 +462,12 @@
             shuffleBtn.classList.toggle('text-[#84cc16]', isShuffle);
             shuffleBtn.classList.toggle('text-gray-400', !isShuffle);
             
-            const currentPlayingSongId = currentTracklist[currentSongIndex]?.id;
-
-            if (isShuffle) {
-                originalOrderTracklist = [...currentTracklist];
-                currentTracklist.sort(() => Math.random() - 0.5);
-                showToast("Shuffle enabled");
-            } else {
-                currentTracklist = [...originalOrderTracklist];
-                showToast("Shuffle disabled");
-            }
-            
-            const newIdx = currentPlayingSongId ? currentTracklist.findIndex(s => s.id === currentPlayingSongId) : -1;
-            currentSongIndex = (newIdx !== -1) ? newIdx : (currentTracklist.length > 0 ? 0 : -1);
-            
-            const activeTab = document.querySelector('.tab-button.tab-active').dataset.tab;
-            if (activeTab === 'library') renderSongList(libraryView, currentTracklist);
-            else if (activeTab === 'favorites') renderFavorites();
+            const activeTab = document.querySelector('.tab-button.tab-active')?.dataset.tab;
+            if (activeTab === 'library') updateActiveTab('library');
+            else if (activeTab === 'favorites') updateActiveTab('favorites');
             else if (activeTab === 'playlists' && currentOpenPlaylistId) renderSongsInPlaylist(currentOpenPlaylistId);
             
-            updateSelectedSongUI(); 
+            showToast(isShuffle ? "Shuffle enabled" : "Shuffle disabled");
         });
         
 
@@ -579,15 +553,17 @@
                     const clickedSongId = songDiv.dataset.songId;
 
                     if (action === 'play') {
-                        currentTracklist = [...tracklistToRender]; 
-                        originalOrderTracklist = [...tracklistToRender];
-                        if(isShuffle) { 
-                             currentTracklist = [...originalOrderTracklist].sort(() => Math.random() - 0.5);
-                        }
-                        const songIndexInClickedList = currentTracklist.findIndex(s => s.id === clickedSongId);
+                        // Set the tracklist based on the view the user is clicking from
+                        const parentView = e.target.closest('.tab-content');
+                        if (parentView.id === 'libraryView') {
+                            currentTracklist = isShuffle ? [...songs].sort(()=> Math.random() - 0.5) : [...songs];
+                            originalOrderTracklist = [...songs];
+                        } // Favorites and Playlists tracklists are set when the tab is switched
+                        
+                        const songIndexToPlay = currentTracklist.findIndex(s => s.id === clickedSongId);
 
-                        if (songIndexInClickedList !== -1) {
-                            loadSong(songIndexInClickedList);
+                        if (songIndexToPlay !== -1) {
+                            loadSong(songIndexToPlay);
                             playSong();
                         }
                     } else if (action === 'toggleFavorite') {
@@ -636,7 +612,7 @@
             });
         });
         
-        function updateActiveTab(tabName) {
+        function updateActiveTab(tabName, options = {}) {
             tabButtons.forEach(btn => {
                 btn.classList.toggle('tab-active', btn.dataset.tab === tabName);
                 btn.classList.toggle('text-gray-400', btn.dataset.tab !== tabName);
@@ -646,20 +622,45 @@
             });
 
             currentOpenPlaylistId = null; 
+            
+            let viewIsEmpty = false;
 
             if (tabName === 'library') {
                 document.getElementById('libraryView').classList.remove('hidden');
-                renderSongList(libraryView, songs); 
+                currentTracklist = isShuffle ? [...songs].sort(() => Math.random() - 0.5) : [...songs];
+                originalOrderTracklist = [...songs];
+                renderSongList(libraryView, currentTracklist); 
             } else if (tabName === 'favorites') {
                 document.getElementById('favoritesView').classList.remove('hidden');
+                const favSongsData = songs.filter(song => favoriteSongIds.includes(song.id));
+                currentTracklist = isShuffle ? [...favSongsData].sort(() => Math.random() - 0.5) : [...favSongsData];
+                originalOrderTracklist = [...favSongsData];
                 renderFavorites();
+                viewIsEmpty = favSongsData.length === 0;
             } else if (tabName === 'playlists') {
                 document.getElementById('playlistsView').classList.remove('hidden');
                 singlePlaylistSongsView.classList.add('hidden'); 
+                currentTracklist = []; // No active tracklist when on the main playlist view
+                originalOrderTracklist = [];
                 renderPlaylists();
+                viewIsEmpty = playlists.length === 0;
             }
-            updatePlayerHeader();
-            updateSelectedSongUI();
+            
+            if (options.isInitialLoad) {
+                loadSong(0);
+            } else {
+                const playingSongId = audioPlayer.currentSrc ? songs.find(s => s.url === audioPlayer.currentSrc)?.id : null;
+                const songIndexInNewList = playingSongId ? currentTracklist.findIndex(s => s.id === playingSongId) : -1;
+
+                if (songIndexInNewList !== -1) {
+                    currentSongIndex = songIndexInNewList;
+                    updatePlayerHeader({ view: tabName, isEmpty: viewIsEmpty });
+                    updateSelectedSongUI();
+                } else {
+                    loadSong(0); // Load first song of the new context, will handle empty lists
+                    updatePlayerHeader({ view: tabName, isEmpty: viewIsEmpty });
+                }
+            }
         }
 
         // --- Favorites Management (Uses dbUserDocRef) ---
@@ -671,25 +672,15 @@
 
             unsubscribeUserDoc = onSnapshot(dbUserDocRef, (docSnap) => {
                 if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    favoriteSongIds = data.favoriteSongIds || [];
+                    favoriteSongIds = docSnap.data().favoriteSongIds || [];
                 } else {
                     favoriteSongIds = [];
                     console.log("User document does not exist yet for UID:", userId);
                 }
-                renderFavorites();
-                const activeTabButton = document.querySelector('.tab-button.tab-active');
-                if (!activeTabButton) return;
-                const activeTab = activeTabButton.dataset.tab;
-
-                if (activeTab === 'library') renderSongList(libraryView, songs);
-                else if (activeTab === 'playlists' && currentOpenPlaylistId) renderSongsInPlaylist(currentOpenPlaylistId);
-                updateSelectedSongUI();
+                renderFavorites(); // Always re-render the fav list contents when data changes
             }, (error) => {
                 console.error("Error loading user document (favorites):", error);
                 showToast("Could not load favorites.", 4000);
-                favoriteSongIds = []; 
-                renderFavorites();
             });
         }
 
@@ -713,17 +704,9 @@
 
         function renderFavorites() {
             const favSongsData = songs.filter(song => favoriteSongIds.includes(song.id));
-            noFavoritesMessage.classList.toggle('hidden', favSongsData.length > 0);
+            noFavoritesMessage.classList.toggle('hidden', favSongsData.length === 0);
             renderSongList(favoritesView, favSongsData);
-            
-            if (document.getElementById('favoritesView').classList.contains('hidden') === false) {
-                const stillPlayingValidSong = currentTracklist.some(s => s.id === (currentTracklist[currentSongIndex]?.id));
-
-                if (!stillPlayingValidSong && favSongsData.length > 0) {
-                    loadSong(0);
-                }
-            }
-            updatePlayerHeader();
+            updatePlayerHeader({ view: 'favorites', isEmpty: favSongsData.length === 0 });
             updateSelectedSongUI();
         }
 
@@ -775,20 +758,18 @@
                 playlists.sort((a,b) => a.name.localeCompare(b.name));
 
                 renderPlaylists();
+                updatePlayerHeader({ view: 'playlists', isEmpty: playlists.length === 0 });
+                
                 if (currentOpenPlaylistId) {
                     const stillExists = playlists.find(p => p.id === currentOpenPlaylistId);
                     if (stillExists) {
                         renderSongsInPlaylist(currentOpenPlaylistId);
                     } else { 
                         showPlaylistsList(); 
-                        currentOpenPlaylistId = null;
                     }
                 }
             }, (error) => {
                 console.error("Error loading playlists:", error);
-                showToast("Could not load playlists.", 4000);
-                playlists = []; 
-                renderPlaylists();
             });
         }
         
@@ -917,17 +898,19 @@
             
             const playlistSongsData = playlist?.songIds ? songs.filter(song => playlist.songIds.includes(song.id)) : [];
             
-            noSongsInPlaylistMessage.classList.toggle('hidden', playlistSongsData.length > 0);
+            noSongsInPlaylistMessage.classList.toggle('hidden', playlistSongsData.length === 0);
             renderSongList(songsInPlaylistContainer, playlistSongsData, true, playlistId);
             
-            if (singlePlaylistSongsView.classList.contains('hidden') === false) {
-                const stillPlayingValidSong = currentTracklist.some(s => s.id === (currentTracklist[currentSongIndex]?.id));
+            currentTracklist = isShuffle ? [...playlistSongsData].sort(() => Math.random() - 0.5) : [...playlistSongsData];
+            originalOrderTracklist = [...playlistSongsData];
+            
+            const stillPlayingValidSong = currentTracklist.some(s => s.id === (currentTracklist[currentSongIndex]?.id));
 
-                if (!stillPlayingValidSong) {
-                    loadSong(0);
-                }
+            if (!stillPlayingValidSong) {
+                loadSong(0);
             }
-            updatePlayerHeader();
+            
+            updatePlayerHeader({view: 'singlePlaylist', isEmpty: playlistSongsData.length === 0});
             updateSelectedSongUI();
         }
 
@@ -935,22 +918,7 @@
         backToPlaylistsBtn.addEventListener('click', showPlaylistsList);
 
         function showPlaylistsList() {
-            singlePlaylistSongsView.classList.add('hidden');
-            document.getElementById('playlistsView').classList.remove('hidden');
-            currentOpenPlaylistId = null; 
-            
-            const librarySongs = isShuffle ? [...songs].sort(() => Math.random() - 0.5) : [...songs];
-            if (JSON.stringify(currentTracklist) !== JSON.stringify(librarySongs)) {
-                 currentTracklist = librarySongs;
-                 originalOrderTracklist = [...songs];
-
-                 const playingSongId = audioPlayer.src ? songs.find(s => s.url === audioPlayer.src)?.id : null;
-                 let newIndex = playingSongId ? currentTracklist.findIndex(s => s.id === playingSongId) : 0;
-                 
-                 loadSong(newIndex);
-            }
-            updatePlayerHeader();
-            updateSelectedSongUI(); 
+            updateActiveTab('playlists');
         }
 
 
@@ -961,4 +929,4 @@
 
     </script>
 </body>
-</html>
+</ht
