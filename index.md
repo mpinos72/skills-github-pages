@@ -208,12 +208,13 @@
         // --- Firebase Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             // PASTE YOUR ACTUAL FIREBASE CONFIG HERE
-            apiKey: "YOUR_API_KEY", 
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDtGUyB9bpiL9JefwLnP0AEHg9G9QzFQAE",
+  authDomain: "audio-stream-player-4ed4d.firebaseapp.com",
+  projectId: "audio-stream-player-4ed4d",
+  storageBucket: "audio-stream-player-4ed4d.firebasestorage.app",
+  messagingSenderId: "498762969730",
+  appId: "1:498762969730:web:6474cbafe2ed2c8ef9ba9b",
+  measurementId: "G-SR6D3J302T"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'audio-player-default-app';
 
