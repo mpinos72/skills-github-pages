@@ -86,11 +86,16 @@
           0%, 40%, 100% { transform: scaleY(0.4); }
           20% { transform: scaleY(1.0); }
         }
+        .now-playing-indicator {
+            display: flex;
+            align-items: flex-end;
+            height: 18px;
+        }
         .now-playing-indicator span {
             display: inline-block;
             background-color: #84cc16;
             width: 3px;
-            height: 18px;
+            height: 100%;
             margin-right: 2px;
             animation: sound-wave 1.2s infinite ease-in-out;
             transform-origin: bottom;
@@ -114,6 +119,10 @@
         .fade-out {
             animation: fadeOut 0.3s ease-in-out forwards;
         }
+        .timer-button-active {
+            background-color: #84cc16 !important;
+            color: #1f2937 !important;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white flex flex-col h-screen">
@@ -123,13 +132,14 @@
 
     <!-- Top Bar: Current Song Info -->
     <div class="p-4 bg-gray-800 shadow-md relative">
-        <div id="currentSongDisplay" class="text-center">
-            <p id="songTitle" class="text-lg font-semibold truncate">No Song Selected</p>
-            <p id="songArtist" class="text-sm text-gray-400 truncate">---</p>
-        </div>
-        <!-- Settings Button -->
-        <div class="absolute top-0 right-0 p-4">
-            <button id="settingsBtn" class="player-button text-gray-400 hover:text-white"><i class="fas fa-cog fa-lg"></i></button>
+        <div id="currentSongDisplay" class="text-center flex items-center justify-center">
+             <div id="header-now-playing" class="now-playing-indicator hidden mr-2">
+               <span></span><span></span><span></span><span></span>
+            </div>
+            <div>
+                <p id="songTitle" class="text-lg font-semibold truncate">No Song Selected</p>
+                <p id="songArtist" class="text-sm text-gray-400 truncate">---</p>
+            </div>
         </div>
     </div>
 
@@ -216,7 +226,7 @@
     <!-- Sleep Timer Modal -->
     <div id="sleepTimerModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-sm">
-            <h3 class="text-xl font-semibold mb-4 text-center">Sleep Timer</h3>
+            <h3 id="sleepTimerTitle" class="text-xl font-semibold mb-4 text-center">Sleep Timer</h3>
             <div id="timerOptions" class="grid grid-cols-2 gap-3">
                 <button data-minutes="15" class="bg-gray-700 hover:bg-[#84cc16] hover:text-gray-900 font-semibold py-3 px-4 rounded-lg">15 Minutes</button>
                 <button data-minutes="30" class="bg-gray-700 hover:bg-[#84cc16] hover:text-gray-900 font-semibold py-3 px-4 rounded-lg">30 Minutes</button>
@@ -303,6 +313,7 @@
         const volumeCtrl = document.getElementById('volumeCtrl');
         const songTitleDisplay = document.getElementById('songTitle');
         const songArtistDisplay = document.getElementById('songArtist');
+        const headerNowPlayingIndicator = document.getElementById('header-now-playing');
 
         const libraryView = document.getElementById('libraryView');
         const favoritesView = document.getElementById('favoritesView');
@@ -335,6 +346,7 @@
         // Sleep Timer Elements
         const sleepTimerBtn = document.getElementById('sleepTimerBtn');
         const sleepTimerModal = document.getElementById('sleepTimerModal');
+        const sleepTimerTitle = document.getElementById('sleepTimerTitle');
         const timerOptions = document.getElementById('timerOptions');
         const cancelSleepTimerBtn = document.getElementById('cancelSleepTimerBtn');
 
@@ -363,6 +375,7 @@
         let currentOpenPlaylistId = null;
         let lastPlaybackState = null;
         let sleepTimerId = null;
+        let activeTimerMinutes = 0;
 
         // --- Toast Notification ---
         function showToast(message, duration) {
@@ -435,10 +448,12 @@
         }
 
         function updateNowPlayingIndicator() {
+            // Hide all indicators first
             document.querySelectorAll('.now-playing-indicator').forEach(function(indicator) {
                 indicator.classList.add('hidden');
             });
 
+            // If playing, show indicators for the current song
             if (isPlaying) {
                 const currentSong = playbackTracklist[currentSongIndex];
                 if (currentSong) {
@@ -449,7 +464,10 @@
                             indicator.classList.remove('hidden');
                         }
                     });
+                    headerNowPlayingIndicator.classList.remove('hidden');
                 }
+            } else {
+                headerNowPlayingIndicator.classList.add('hidden');
             }
         }
 
@@ -729,7 +747,8 @@
                     btn.classList.toggle('text-gray-400', btn.dataset.tab !== tabName);
                 });
                 tabContents.forEach(function(content) {
-                    if (content.id.toLowerCase().includes(tabName)) {
+                    const contentId = content.id.toLowerCase();
+                    if (contentId.includes(tabName)) {
                         content.classList.remove('hidden');
                         content.classList.add('fade-in');
                     } else {
@@ -856,15 +875,32 @@
         }
 
         // --- Sleep Timer ---
+        function updateSleepTimerUI() {
+            timerOptions.querySelectorAll('button').forEach(function(btn) {
+                btn.classList.remove('timer-button-active');
+                if (parseInt(btn.dataset.minutes, 10) === activeTimerMinutes) {
+                    btn.classList.add('timer-button-active');
+                }
+            });
+            if (activeTimerMinutes > 0) {
+                sleepTimerTitle.textContent = "Timer set for " + activeTimerMinutes + " min";
+            } else {
+                sleepTimerTitle.textContent = "Sleep Timer";
+            }
+        }
+
         function setSleepTimer(minutes) {
             if(sleepTimerId) clearTimeout(sleepTimerId);
+            activeTimerMinutes = minutes;
             
             if (minutes > 0) {
                 sleepTimerId = setTimeout(function() {
                     pauseSong();
                     showToast("Sleep timer finished.");
+                    activeTimerMinutes = 0;
                     sleepTimerBtn.classList.remove('text-[#84cc16]');
                     sleepTimerBtn.classList.add('text-gray-400');
+                    updateSleepTimerUI();
                 }, minutes * 60 * 1000);
                 
                 sleepTimerBtn.classList.add('text-[#84cc16]');
@@ -875,10 +911,12 @@
                 sleepTimerBtn.classList.add('text-gray-400');
                 showToast("Sleep timer turned off.");
             }
+            updateSleepTimerUI();
             sleepTimerModal.classList.remove('active');
         }
 
         sleepTimerBtn.addEventListener('click', function() {
+            updateSleepTimerUI();
             sleepTimerModal.classList.add('active');
         });
 
