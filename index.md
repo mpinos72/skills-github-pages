@@ -126,22 +126,30 @@
         
         /* Lyrics Styling */
         #lyricsContainer {
-            height: 80px; /* Adjust height as needed for single line */
+            height: 60px; 
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             position: relative;
+            white-space: nowrap;
         }
         .lyric-line {
-            text-align: center;
+            display: inline-block;
             font-size: 1.125rem; /* lg */
             font-weight: 500;
             color: #fff;
-            transition: opacity 0.4s ease-in-out;
+            padding: 0 1rem;
         }
-        .lyric-line.hidden {
-            opacity: 0;
+        .scrolling {
+            animation-name: marquee;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes marquee {
+          from { transform: translateX(100%); }
+          to { transform: translateX(-100%); }
         }
     </style>
 </head>
@@ -165,8 +173,13 @@
             </div>
         </div>
 
+        <!-- Lyrics Display -->
+        <div id="lyricsContainer" class="bg-gray-800 pt-2 pb-2">
+            <p id="lyricsDisplay" class="lyric-line"></p>
+        </div>
+
         <!-- Progress Bar and Time -->
-        <div class="p-4 bg-gray-800">
+        <div class="px-4 py-2 bg-gray-800">
             <input type="range" id="progressBar" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
             <div class="flex justify-between text-xs text-gray-400 mt-1">
                 <span id="currentTime">0:00</span>
@@ -175,7 +188,7 @@
         </div>
 
         <!-- Player Controls -->
-        <div class="p-4 bg-gray-800 flex items-center justify-around">
+        <div class="p-2 bg-gray-800 flex items-center justify-around">
             <button id="shuffleBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-random fa-lg"></i></button>
             <button id="prevBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-backward fa-xl"></i></button>
             <button id="playPauseBtn" class="player-button text-[#84cc16] hover:text-[#65a30d] bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center">
@@ -199,11 +212,6 @@
             </div>
         </div>
         
-        <!-- Lyrics Display -->
-        <div id="lyricsContainer" class="bg-gray-800 p-2">
-            <p id="lyricsDisplay" class="lyric-line"></p>
-        </div>
-
         <!-- Tabs for Song Lists -->
         <div class="flex border-b border-gray-700 sticky top-0 bg-gray-900 z-10">
             <button data-tab="library" class="tab-button flex-1 py-3 text-center text-gray-400 hover:text-white tab-active">Library</button>
@@ -342,6 +350,7 @@
         const songArtistDisplay = document.getElementById('songArtist');
         const headerNowPlayingIndicator = document.getElementById('header-now-playing');
         const lyricsDisplay = document.getElementById('lyricsDisplay');
+        const lyricsContainer = document.getElementById('lyricsContainer');
 
         const libraryView = document.getElementById('libraryView');
         const favoritesView = document.getElementById('favoritesView');
@@ -381,7 +390,7 @@
 
         let songs = [
             { id: 's1', title: 'Surah 1: Al-Fatiha', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/001.mp3', 
-              lyrics: `[00:00.00] \n[00:08.20] In the name of Allah, the Entirely Merciful, the Especially Merciful.\n[00:15.50] \n[00:17.50] [All] praise is [due] to Allah, Lord of the worlds -\n[00:22.50] \n[00:24.50] The Entirely Merciful, the Especially Merciful,\n[00:28.50] \n[00:29.50] Sovereign of the Day of Recompense.\n[00:33.50] \n[00:34.50] It is You we worship and You we ask for help.\n[00:38.50] \n[00:39.50] Guide us to the straight path -\n[00:45.50] \n[00:46.50] The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.`},
+              lyrics: `[00:05.00]In the name of Allah, the Entirely Merciful, the Especially Merciful.\n[00:09.50]\n[00:12.00][All] praise is [due] to Allah, Lord of the worlds -\n[00:15.50]\n[00:17.00]The Entirely Merciful, the Especially Merciful,\n[00:20.50]\n[00:23.00]Sovereign of the Day of Recompense.\n[00:26.00]\n[00:29.50]It is You we worship and You we ask for help.\n[00:32.50]\n[00:35.00]Guide us to the straight path -\n[00:37.50]\n[00:45.50]The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.`},
             { id: 's2', title: 'Surah 2: Al-Baqarah', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/002.mp3',
               lyrics: `[00:01.00]Alif, Lam, Meem.\n[00:04.50]This is the Book about which there is no doubt...\n[00:07.50]...a guidance for those conscious of Allah -`},
             { id: 's3', title: 'Surah 3: Al-Imran', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/003.mp3', lyrics: ''},
@@ -999,11 +1008,20 @@
             
             if(currentLyricText !== currentLine) {
                 currentLyricText = currentLine;
-                lyricsDisplay.classList.add('hidden'); // Start fade out
-                setTimeout(function(){
-                    lyricsDisplay.textContent = currentLine || '\u00A0'; // Use a non-breaking space for empty lines
-                    lyricsDisplay.classList.remove('hidden'); // Start fade in
-                }, 200);
+                lyricsDisplay.textContent = currentLine || '\u00A0'; // Use a non-breaking space for empty lines
+
+                // Handle scrolling for long text
+                const containerWidth = lyricsContainer.offsetWidth;
+                const textWidth = lyricsDisplay.offsetWidth;
+                
+                lyricsDisplay.classList.remove('scrolling');
+                lyricsDisplay.style.animation = 'none';
+
+                if (textWidth > containerWidth) {
+                    const duration = textWidth / 50; // Adjust 50 to control speed
+                    lyricsDisplay.style.animation = `marquee ${duration}s linear infinite`;
+                    lyricsDisplay.classList.add('scrolling');
+                }
             }
         }
 
