@@ -80,6 +80,40 @@
             bottom: 30px; /* Slide up */
             visibility: visible;
         }
+
+        /* Now Playing Indicator Animation */
+        @keyframes sound-wave {
+          0%, 40%, 100% { transform: scaleY(0.4); }
+          20% { transform: scaleY(1.0); }
+        }
+        .now-playing-indicator span {
+            display: inline-block;
+            background-color: #84cc16;
+            width: 3px;
+            height: 18px;
+            margin-right: 2px;
+            animation: sound-wave 1.2s infinite ease-in-out;
+            transform-origin: bottom;
+        }
+        .now-playing-indicator span:nth-child(2) { animation-delay: -0.2s; }
+        .now-playing-indicator span:nth-child(3) { animation-delay: -0.4s; }
+        .now-playing-indicator span:nth-child(4) { animation-delay: -0.6s; }
+
+        /* Fade Animations for Tab Content */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+        .fade-out {
+            animation: fadeOut 0.3s ease-in-out forwards;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white flex flex-col h-screen">
@@ -88,10 +122,14 @@
     <audio id="audioPlayer"></audio>
 
     <!-- Top Bar: Current Song Info -->
-    <div class="p-4 bg-gray-800 shadow-md">
+    <div class="p-4 bg-gray-800 shadow-md relative">
         <div id="currentSongDisplay" class="text-center">
             <p id="songTitle" class="text-lg font-semibold truncate">No Song Selected</p>
             <p id="songArtist" class="text-sm text-gray-400 truncate">---</p>
+        </div>
+        <!-- Settings Button -->
+        <div class="absolute top-0 right-0 p-4">
+            <button id="settingsBtn" class="player-button text-gray-400 hover:text-white"><i class="fas fa-cog fa-lg"></i></button>
         </div>
     </div>
 
@@ -112,15 +150,23 @@
             <i class="fas fa-play fa-2x"></i>
         </button>
         <button id="nextBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-forward fa-xl"></i></button>
-        <button id="loopBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-retweet fa-lg"></i></button> <!-- Using retweet as a loop icon -->
+        <button id="loopBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-retweet fa-lg"></i></button>
     </div>
 
-    <!-- Volume Control -->
-    <div class="px-4 pt-2 pb-4 bg-gray-800 flex items-center justify-center space-x-2">
-        <i class="fas fa-volume-down text-gray-400"></i>
-        <input type="range" id="volumeCtrl" min="0" max="1" step="0.01" value="0.5" class="w-1/2 md:w-1/4 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
-        <i class="fas fa-volume-up text-gray-400"></i>
+    <!-- Volume and Sleep Timer -->
+    <div class="px-4 md:px-6 pt-2 pb-4 bg-gray-800 flex items-center justify-center relative">
+        <!-- Centered Volume Controls -->
+        <div class="flex items-center justify-center space-x-2 w-full">
+            <i class="fas fa-volume-down text-gray-400"></i>
+            <input type="range" id="volumeCtrl" min="0" max="1" step="0.01" value="0.5" class="w-1/2 md:w-1/3 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
+            <i class="fas fa-volume-up text-gray-400"></i>
+        </div>
+        <!-- Sleep Timer Button absolutely positioned on the right -->
+        <div class="absolute right-4 md:right-6">
+             <button id="sleepTimerBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-clock fa-lg"></i></button>
+        </div>
     </div>
+
 
     <!-- Tabs for Song Lists -->
     <div class="flex border-b border-gray-700 sticky top-0 bg-gray-900 z-10">
@@ -166,6 +212,23 @@
              <p class="text-gray-500 text-center p-4 hidden" id="noSongsInPlaylistMessage">This playlist is empty.</p>
         </div>
     </div>
+
+    <!-- Sleep Timer Modal -->
+    <div id="sleepTimerModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-sm">
+            <h3 class="text-xl font-semibold mb-4 text-center">Sleep Timer</h3>
+            <div id="timerOptions" class="grid grid-cols-2 gap-3">
+                <button data-minutes="15" class="bg-gray-700 hover:bg-[#84cc16] hover:text-gray-900 font-semibold py-3 px-4 rounded-lg">15 Minutes</button>
+                <button data-minutes="30" class="bg-gray-700 hover:bg-[#84cc16] hover:text-gray-900 font-semibold py-3 px-4 rounded-lg">30 Minutes</button>
+                <button data-minutes="60" class="bg-gray-700 hover:bg-[#84cc16] hover:text-gray-900 font-semibold py-3 px-4 rounded-lg">60 Minutes</button>
+                <button data-minutes="0" class="bg-gray-700 hover:bg-pink-500 font-semibold py-3 px-4 rounded-lg">Turn Off</button>
+            </div>
+            <div class="flex justify-center mt-4">
+                <button id="cancelSleepTimerBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded-lg">Cancel</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Modal for Creating Playlist -->
     <div id="createPlaylistModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
@@ -268,6 +331,12 @@
         const noPlaylistsForAddingMessage = document.getElementById('noPlaylistsForAddingMessage');
         
         const toastNotification = document.getElementById('toastNotification');
+        
+        // Sleep Timer Elements
+        const sleepTimerBtn = document.getElementById('sleepTimerBtn');
+        const sleepTimerModal = document.getElementById('sleepTimerModal');
+        const timerOptions = document.getElementById('timerOptions');
+        const cancelSleepTimerBtn = document.getElementById('cancelSleepTimerBtn');
 
 
         let songs = [
@@ -293,6 +362,7 @@
         let playlists = []; 
         let currentOpenPlaylistId = null;
         let lastPlaybackState = null;
+        let sleepTimerId = null;
 
         // --- Toast Notification ---
         function showToast(message, duration) {
@@ -364,6 +434,26 @@
             songArtistDisplay.textContent = "---";
         }
 
+        function updateNowPlayingIndicator() {
+            document.querySelectorAll('.now-playing-indicator').forEach(function(indicator) {
+                indicator.classList.add('hidden');
+            });
+
+            if (isPlaying) {
+                const currentSong = playbackTracklist[currentSongIndex];
+                if (currentSong) {
+                    const songItems = document.querySelectorAll(`.song-item[data-song-id="${currentSong.id}"]`);
+                    songItems.forEach(function(songItem){
+                       const indicator = songItem.querySelector('.now-playing-indicator');
+                        if (indicator) {
+                            indicator.classList.remove('hidden');
+                        }
+                    });
+                }
+            }
+        }
+
+
         // --- Audio Controls ---
         function loadSong(index, options) {
             options = options || {};
@@ -389,6 +479,7 @@
             }
             updatePlayerHeader(); 
             updateSelectedSongUI();
+            updateNowPlayingIndicator();
         }
 
         function playSong() {
@@ -410,6 +501,7 @@
                     .then(function() {
                         isPlaying = true;
                         playPauseBtn.innerHTML = '<i class="fas fa-pause fa-2x"></i>';
+                        updateNowPlayingIndicator();
                     })
                     .catch(function(error) {
                         console.error("Error playing audio:", error);
@@ -423,6 +515,7 @@
             audioPlayer.pause();
             isPlaying = false;
             playPauseBtn.innerHTML = '<i class="fas fa-play fa-2x"></i>';
+            updateNowPlayingIndicator();
             savePlaybackState(); 
         }
 
@@ -478,6 +571,7 @@
             currentSongIndex = newIndex !== -1 ? newIndex : 0;
             
             updateSelectedSongUI();
+            updateNowPlayingIndicator();
             showToast(isShuffle ? "Shuffle enabled" : "Shuffle disabled");
         });
         
@@ -533,14 +627,19 @@
                 
                 const currentSong = playbackTracklist[currentSongIndex];
                 if (currentSong && song.id === currentSong.id) {
-                     songDiv.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
+                     songDiv.classList.add('selected');
                 }
                 songDiv.dataset.songId = song.id;
 
                 songDiv.innerHTML = `
-                    <div class="flex-grow" data-action="play">
-                        <p class="font-semibold truncate">${song.title}</p>
-                        <p class="text-sm text-gray-400 truncate">${song.artist}</p>
+                    <div class="flex-grow flex items-center" data-action="play">
+                        <div class="now-playing-indicator hidden mr-2">
+                           <span></span><span></span><span></span><span></span>
+                        </div>
+                        <div>
+                            <p class="font-semibold truncate">${song.title}</p>
+                            <p class="text-sm text-gray-400 truncate">${song.artist}</p>
+                        </div>
                     </div>
                     <div class="flex items-center space-x-3 ml-2">
                         <button data-action="toggleFavorite" data-song-id="${song.id}" class="text-gray-400 hover:text-pink-500 p-2 rounded-full focus:outline-none">
@@ -595,7 +694,7 @@
                 
                 const currentSong = playbackTracklist[currentSongIndex];
                 if (currentSong && songId === currentSong.id) {
-                    item.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
+                    item.classList.add('selected');
                 }
             });
         }
@@ -613,33 +712,53 @@
         
         function updateActiveTab(tabName, options) {
             options = options || {};
-            tabButtons.forEach(function(btn) {
-                btn.classList.toggle('tab-active', btn.dataset.tab === tabName);
-                btn.classList.toggle('text-gray-400', btn.dataset.tab !== tabName);
-            });
-            tabContents.forEach(function(content) {
-                content.classList.add('hidden');
-            });
+            
+            const currentActiveContent = document.querySelector('.tab-content:not(.hidden)');
+            if (currentActiveContent) {
+                currentActiveContent.classList.add('fade-out');
+            }
 
-            currentOpenPlaylistId = null; 
-            
-            if (tabName === 'library') {
-                document.getElementById('libraryView').classList.remove('hidden');
-                renderSongList(libraryView, songs); 
-            } else if (tabName === 'favorites') {
-                document.getElementById('favoritesView').classList.remove('hidden');
-                renderFavorites();
-            } else if (tabName === 'playlists') {
-                document.getElementById('playlistsView').classList.remove('hidden');
-                singlePlaylistSongsView.classList.add('hidden'); 
-                renderPlaylists();
-            }
-            
-            if (options.isInitialLoad) {
-                const songIndex = lastPlaybackState ? songs.findIndex(function(s) { return s.id === lastPlaybackState.songId; }) : 0;
-                const songToLoadIndex = songIndex !== -1 ? songIndex : 0;
-                loadSong(songToLoadIndex, { seekTime: lastPlaybackState ? lastPlaybackState.currentTime : 0 });
-            }
+            setTimeout(function() {
+                if(currentActiveContent) {
+                    currentActiveContent.classList.add('hidden');
+                    currentActiveContent.classList.remove('fade-out');
+                }
+
+                tabButtons.forEach(function(btn) {
+                    btn.classList.toggle('tab-active', btn.dataset.tab === tabName);
+                    btn.classList.toggle('text-gray-400', btn.dataset.tab !== tabName);
+                });
+                tabContents.forEach(function(content) {
+                    if (content.id.toLowerCase().includes(tabName)) {
+                        content.classList.remove('hidden');
+                        content.classList.add('fade-in');
+                    } else {
+                        content.classList.remove('fade-in');
+                    }
+                });
+
+                currentOpenPlaylistId = null; 
+                
+                if (tabName === 'library') {
+                    renderSongList(libraryView, songs); 
+                } else if (tabName === 'favorites') {
+                    renderFavorites();
+                } else if (tabName === 'playlists') {
+                    singlePlaylistSongsView.classList.add('hidden'); 
+                    renderPlaylists();
+                }
+                
+                if (options.isInitialLoad) {
+                    const songIndex = lastPlaybackState ? songs.findIndex(function(s) { return s.id === lastPlaybackState.songId; }) : 0;
+                    const songToLoadIndex = songIndex !== -1 ? songIndex : 0;
+                    playbackTracklist = [...songs];
+                    originalPlaybackTracklist = [...songs];
+                    loadSong(songToLoadIndex, { seekTime: lastPlaybackState ? lastPlaybackState.currentTime : 0 });
+                }
+                updatePlayerHeader();
+                updateNowPlayingIndicator();
+                updateSelectedSongUI();
+            }, 300); // Duration of the fadeOut animation
         }
 
         // --- Favorites Management ---
@@ -699,6 +818,7 @@
             if (activeTabButton && activeTabButton.dataset.tab === 'favorites') {
                 updatePlayerHeader();
             }
+            updateNowPlayingIndicator();
             updateSelectedSongUI();
         }
         
@@ -725,18 +845,53 @@
         
         // --- Kodular Communication Bridge ---
         if (window.AppInventor && window.AppInventor.getWebViewString) {
-            // Function to check for messages from Kodular
             function checkForAppCommands() {
                 const command = window.AppInventor.getWebViewString();
                 if (command === "PAUSE_COMMAND") {
                     pauseSong();
-                    // Clear the string so it doesn't get called again
                     window.AppInventor.setWebViewString(""); 
                 }
             }
-            // Check for commands periodically
             setInterval(checkForAppCommands, 250);
         }
+
+        // --- Sleep Timer ---
+        function setSleepTimer(minutes) {
+            if(sleepTimerId) clearTimeout(sleepTimerId);
+            
+            if (minutes > 0) {
+                sleepTimerId = setTimeout(function() {
+                    pauseSong();
+                    showToast("Sleep timer finished.");
+                    sleepTimerBtn.classList.remove('text-[#84cc16]');
+                    sleepTimerBtn.classList.add('text-gray-400');
+                }, minutes * 60 * 1000);
+                
+                sleepTimerBtn.classList.add('text-[#84cc16]');
+                sleepTimerBtn.classList.remove('text-gray-400');
+                showToast("Sleep timer set for " + minutes + " minutes.");
+            } else {
+                sleepTimerBtn.classList.remove('text-[#84cc16]');
+                sleepTimerBtn.classList.add('text-gray-400');
+                showToast("Sleep timer turned off.");
+            }
+            sleepTimerModal.classList.remove('active');
+        }
+
+        sleepTimerBtn.addEventListener('click', function() {
+            sleepTimerModal.classList.add('active');
+        });
+
+        cancelSleepTimerBtn.addEventListener('click', function() {
+            sleepTimerModal.classList.remove('active');
+        });
+
+        timerOptions.addEventListener('click', function(e) {
+            if(e.target.tagName === 'BUTTON') {
+                const minutes = parseInt(e.target.dataset.minutes, 10);
+                setSleepTimer(minutes);
+            }
+        });
 
 
         // --- Playlist Management ---
