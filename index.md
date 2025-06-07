@@ -190,7 +190,6 @@
             <p id="noPlaylistsForAddingMessage" class="text-gray-400 mb-4 hidden">No playlists available. Create one first!</p>
             <div class="flex justify-end space-x-2">
                 <button id="cancelAddToPlaylistBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg">Cancel</button>
-                <!-- Save button will be dynamically handled or one per playlist item -->
             </div>
         </div>
     </div>
@@ -293,6 +292,8 @@
         let favoriteSongIds = [];
         let playlists = []; 
         let currentOpenPlaylistId = null;
+        let lastPlaybackState = null;
+        let saveStateTimeout = null;
 
         // --- Toast Notification ---
         function showToast(message, duration) {
@@ -323,8 +324,8 @@
                 playlists = [];
                 renderFavorites();
                 renderPlaylists();
+                updateActiveTab('library', { isInitialLoad: true });
             }
-            updateActiveTab('library', { isInitialLoad: true });
         });
 
         async function initAuth() {
@@ -352,7 +353,6 @@
                 return;
             }
             
-            // Handle empty states based on the active tab
             if (activeTab === 'favorites') {
                 songTitleDisplay.textContent = "No Songs in Favorites";
             } else if (activeTab === 'playlists' && !currentOpenPlaylistId) {
@@ -366,12 +366,23 @@
         }
 
         // --- Audio Controls ---
-        function loadSong(index) {
+        function loadSong(index, options) {
+            options = options || {};
             if (index >= 0 && index < currentTracklist.length) {
                 const song = currentTracklist[index];
                 currentSongIndex = index; 
                 audioPlayer.src = song.url;
-                if (isPlaying) audioPlayer.play().catch(function(e) { console.error("Error playing loaded song:", e); });
+
+                audioPlayer.oncanplaythrough = function() {
+                    if (options.seekTime) {
+                        audioPlayer.currentTime = options.seekTime;
+                    }
+                    if (isPlaying) {
+                        audioPlayer.play().catch(function(e) { console.error("Error playing loaded song:", e); });
+                    }
+                    audioPlayer.oncanplaythrough = null; // Remove listener after it has run once
+                };
+
             } else {
                 currentSongIndex = -1; 
                 audioPlayer.src = ''; 
@@ -413,6 +424,7 @@
             audioPlayer.pause();
             isPlaying = false;
             playPauseBtn.innerHTML = '<i class="fas fa-play fa-2x"></i>';
+            savePlaybackState(); // Save state on pause
         }
 
         playPauseBtn.addEventListener('click', function() {
@@ -471,6 +483,13 @@
                 const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
                 progressBar.value = progress;
                 currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+                // Throttled save of playback state
+                if (!saveStateTimeout) {
+                    saveStateTimeout = setTimeout(function() {
+                        savePlaybackState();
+                        saveStateTimeout = null;
+                    }, 5000); // Save every 5 seconds
+                }
             }
         });
 
@@ -619,7 +638,8 @@
             });
 
             currentOpenPlaylistId = null; 
-            
+            let songToLoadIndex = -1;
+
             if (tabName === 'library') {
                 document.getElementById('libraryView').classList.remove('hidden');
                 currentTracklist = isShuffle ? [...songs].sort(function() { return Math.random() - 0.5; }) : [...songs];
@@ -627,7 +647,7 @@
                 renderSongList(libraryView, currentTracklist); 
             } else if (tabName === 'favorites') {
                 document.getElementById('favoritesView').classList.remove('hidden');
-                const favSongsData = songs.filter(function(s) { return favoriteSongIds.includes(s); });
+                const favSongsData = songs.filter(function(s) { return favoriteSongIds.includes(s.id); });
                 currentTracklist = isShuffle ? [...favSongsData].sort(function() { return Math.random() - 0.5; }) : [...favSongsData];
                 originalOrderTracklist = [...favSongsData];
                 renderFavorites();
@@ -640,12 +660,14 @@
             }
             
             if (options.isInitialLoad) {
-                loadSong(0);
+                const songIndex = lastPlaybackState ? songs.findIndex(function(s) { return s.id === lastPlaybackState.songId; }) : 0;
+                songToLoadIndex = songIndex !== -1 ? songIndex : 0;
+                loadSong(songToLoadIndex, { seekTime: lastPlaybackState ? lastPlaybackState.currentTime : 0 });
             } else {
                 const playingSongId = currentTracklist[currentSongIndex]?.id;
                 const songStillInList = currentTracklist.some(function(s) { return s.id === playingSongId; });
                 if (!songStillInList) {
-                    loadSong(0); // If current song is not in new view, load first song
+                    loadSong(0);
                 } else {
                     updatePlayerHeader();
                     updateSelectedSongUI();
@@ -653,7 +675,7 @@
             }
         }
 
-        // --- Favorites Management (Uses dbUserDocRef) ---
+        // --- Favorites Management ---
         async function loadUserDocumentData() {
             if (!userId || !dbUserDocRef) {
                  favoriteSongIds = []; renderFavorites(); return;
@@ -662,15 +684,19 @@
 
             unsubscribeUserDoc = onSnapshot(dbUserDocRef, function(docSnap) {
                 if (docSnap.exists()) {
-                    favoriteSongIds = docSnap.data().favoriteSongIds || [];
+                    const data = docSnap.data();
+                    favoriteSongIds = data.favoriteSongIds || [];
+                    lastPlaybackState = data.lastPlayed || null;
                 } else {
                     favoriteSongIds = [];
+                    lastPlaybackState = null;
                     console.log("User document does not exist yet for UID:", userId);
                 }
                 renderFavorites();
+                updateActiveTab('library', { isInitialLoad: true });
             }, function(error) {
-                console.error("Error loading user document (favorites):", error);
-                showToast("Could not load favorites.", 4000);
+                console.error("Error loading user document:", error);
+                showToast("Could not load user data.", 4000);
             });
         }
 
@@ -679,7 +705,6 @@
                 showToast("Cannot save favorite. Not connected.", 3000); return;
             }
             
-            // Optimistic UI Update
             iconElement.classList.toggle('text-pink-500');
 
             const isCurrentlyFavorite = favoriteSongIds.includes(songId);
@@ -689,7 +714,6 @@
                 await setDoc(dbUserDocRef, { favoriteSongIds: operation }, { merge: true });
                 showToast(isCurrentlyFavorite ? "Removed from Favorites" : "Added to Favorites");
             } catch (error) {
-                // Revert UI on failure
                 iconElement.classList.toggle('text-pink-500');
                 console.error("Error updating favorites:", error);
                 showToast("Error saving favorite.", 3000);
@@ -707,8 +731,30 @@
             }
             updateSelectedSongUI();
         }
+        
+        // --- Playback State Management ---
+        async function savePlaybackState() {
+            if (!userId || !dbUserDocRef || currentSongIndex < 0) return;
+            
+            const songToSave = currentTracklist[currentSongIndex];
+            if (!songToSave) return;
+            
+            const state = {
+                songId: songToSave.id,
+                currentTime: audioPlayer.currentTime
+            };
+            
+            try {
+                await setDoc(dbUserDocRef, { lastPlayed: state }, { merge: true });
+            } catch (error) {
+                console.error("Error saving playback state:", error);
+            }
+        }
+        
+        window.addEventListener('beforeunload', savePlaybackState);
 
-        // --- Playlist Management (Uses dbPlaylistsCollectionRef) ---
+
+        // --- Playlist Management ---
         createPlaylistBtn.addEventListener('click', function() {
             newPlaylistNameInput.value = '';
             createPlaylistModal.classList.add('active');
