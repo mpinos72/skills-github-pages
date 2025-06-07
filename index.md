@@ -32,8 +32,8 @@
 
         .tab-active {
             border-bottom-width: 2px;
-            border-color: #066107; /* New green color */
-            color: #066107; /* New green color */
+            border-color: #84cc16; /* Lime Green */
+            color: #84cc16; /* Lime Green */
         }
         .modal {
             display: none; /* Hidden by default */
@@ -97,7 +97,7 @@
 
     <!-- Progress Bar and Time -->
     <div class="p-4 bg-gray-800">
-        <input type="range" id="progressBar" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#066107]">
+        <input type="range" id="progressBar" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
         <div class="flex justify-between text-xs text-gray-400 mt-1">
             <span id="currentTime">0:00</span>
             <span id="duration">0:00</span>
@@ -106,19 +106,19 @@
 
     <!-- Player Controls -->
     <div class="p-4 bg-gray-800 flex items-center justify-around">
-        <button id="shuffleBtn" class="player-button text-gray-400 hover:text-[#066107]"><i class="fas fa-random fa-lg"></i></button>
+        <button id="shuffleBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-random fa-lg"></i></button>
         <button id="prevBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-backward fa-xl"></i></button>
-        <button id="playPauseBtn" class="player-button text-[#066107] hover:text-[#055006] bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center">
+        <button id="playPauseBtn" class="player-button text-[#84cc16] hover:text-[#65a30d] bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center">
             <i class="fas fa-play fa-2x"></i>
         </button>
         <button id="nextBtn" class="player-button text-gray-300 hover:text-white"><i class="fas fa-step-forward fa-xl"></i></button>
-        <button id="loopBtn" class="player-button text-gray-400 hover:text-[#066107]"><i class="fas fa-retweet fa-lg"></i></button> <!-- Using retweet as a loop icon -->
+        <button id="loopBtn" class="player-button text-gray-400 hover:text-[#84cc16]"><i class="fas fa-retweet fa-lg"></i></button> <!-- Using retweet as a loop icon -->
     </div>
 
     <!-- Volume Control -->
     <div class="px-4 pt-2 pb-4 bg-gray-800 flex items-center justify-center space-x-2">
         <i class="fas fa-volume-down text-gray-400"></i>
-        <input type="range" id="volumeCtrl" min="0" max="1" step="0.01" value="0.5" class="w-1/2 md:w-1/4 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#066107]">
+        <input type="range" id="volumeCtrl" min="0" max="1" step="0.01" value="0.5" class="w-1/2 md:w-1/4 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#84cc16]">
         <i class="fas fa-volume-up text-gray-400"></i>
     </div>
 
@@ -143,7 +143,7 @@
         <!-- Playlists View -->
         <div id="playlistsView" class="tab-content hidden">
             <div class="p-2">
-                <button id="createPlaylistBtn" class="w-full bg-[#066107] hover:bg-[#044b05] text-white font-semibold py-2 px-4 rounded-lg mb-2">
+                <button id="createPlaylistBtn" class="w-full bg-[#84cc16] hover:bg-[#65a30d] text-white font-semibold py-2 px-4 rounded-lg mb-2">
                     <i class="fas fa-plus-circle mr-2"></i>Create New Playlist
                 </button>
                  <div id="myPlaylistsContainer">
@@ -155,7 +155,7 @@
         <!-- Single Playlist Songs View -->
         <div id="singlePlaylistSongsView" class="tab-content hidden">
              <div class="flex items-center justify-between p-2 border-b border-gray-700">
-                <button id="backToPlaylistsBtn" class="text-[#066107] hover:text-[#055006]">
+                <button id="backToPlaylistsBtn" class="text-[#84cc16] hover:text-[#65a30d]">
                     <i class="fas fa-arrow-left mr-2"></i> Back to Playlists
                 </button>
                 <h3 id="currentPlaylistNameHeader" class="text-lg font-semibold">Playlist Songs</h3>
@@ -171,10 +171,10 @@
     <div id="createPlaylistModal" class="modal fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Create New Playlist</h3>
-            <input type="text" id="newPlaylistName" placeholder="Playlist Name" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-[#066107] outline-none mb-4">
+            <input type="text" id="newPlaylistName" placeholder="Playlist Name" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-[#84cc16] outline-none mb-4">
             <div class="flex justify-end space-x-2">
                 <button id="cancelCreatePlaylistBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg">Cancel</button>
-                <button id="savePlaylistBtn" class="bg-[#066107] hover:bg-[#044b05] text-white font-semibold py-2 px-4 rounded-lg">Create</button>
+                <button id="savePlaylistBtn" class="bg-[#84cc16] hover:bg-[#65a30d] text-white font-semibold py-2 px-4 rounded-lg">Create</button>
             </div>
         </div>
     </div>
@@ -464,14 +464,14 @@
         loopBtn.addEventListener('click', () => {
             isLoop = !isLoop;
             audioPlayer.loop = isLoop; 
-            loopBtn.classList.toggle('text-[#066107]', isLoop);
+            loopBtn.classList.toggle('text-[#84cc16]', isLoop);
             loopBtn.classList.toggle('text-gray-400', !isLoop);
             showToast(isLoop ? "Loop current track enabled" : "Loop current track disabled");
         });
 
         shuffleBtn.addEventListener('click', () => {
             isShuffle = !isShuffle;
-            shuffleBtn.classList.toggle('text-[#066107]', isShuffle);
+            shuffleBtn.classList.toggle('text-[#84cc16]', isShuffle);
             shuffleBtn.classList.toggle('text-gray-400', !isShuffle);
             
             const currentPlayingSongId = currentTracklist[currentSongIndex]?.id;
@@ -547,7 +547,7 @@
                 songDiv.className = 'song-item p-3 flex justify-between items-center cursor-pointer hover:bg-gray-700 transition-colors duration-150';
                 
                 if (song.id === currentTracklist[currentSongIndex]?.id ) {
-                     songDiv.classList.add('selected', 'border-l-4', 'border-[#066107]');
+                     songDiv.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
                 }
                 songDiv.dataset.songId = song.id;
 
@@ -564,7 +564,7 @@
                             `<button data-action="removeFromPlaylist" data-song-id="${song.id}" data-playlist-id="${playlistIdForContext}" class="text-gray-400 hover:text-red-500 p-2 rounded-full focus:outline-none">
                                 <i class="fas fa-trash-alt"></i>
                             </button>` :
-                            `<button data-action="addToPlaylist" data-song-id="${song.id}" class="text-gray-400 hover:text-[#066107] p-2 rounded-full focus:outline-none">
+                            `<button data-action="addToPlaylist" data-song-id="${song.id}" class="text-gray-400 hover:text-[#84cc16] p-2 rounded-full focus:outline-none">
                                 <i class="fas fa-plus-circle"></i>
                             </button>`
                         }
@@ -605,7 +605,7 @@
         
         function updateSelectedSongUI() {
             document.querySelectorAll('.song-item').forEach(item => {
-                item.classList.remove('selected', 'border-l-4', 'border-[#066107]');
+                item.classList.remove('selected', 'border-l-4', 'border-[#84cc16]');
                 const songId = item.dataset.songId;
                 
                 if (songId === currentTracklist[currentSongIndex]?.id) {
@@ -619,7 +619,7 @@
                     if (activeTab === 'playlists' && currentOpenPlaylistId && parentView.id === 'singlePlaylistSongsView') isActiveViewItem = true;
 
                     if(isActiveViewItem){
-                        item.classList.add('selected', 'border-l-4', 'border-[#066107]');
+                        item.classList.add('selected', 'border-l-4', 'border-[#84cc16]');
                     }
                 }
             });
@@ -849,7 +849,7 @@
                     pDiv.className = 'p-2 border-b border-gray-700 flex justify-between items-center last:border-b-0';
                     pDiv.innerHTML = `
                         <span class="truncate">${playlist.name}</span>
-                        <button data-playlist-id="${playlist.id}" ${isSongInPlaylist ? 'disabled class="text-gray-500 cursor-not-allowed p-1 rounded"' : 'class="text-[#066107] hover:text-[#055006] p-1 rounded"'}">
+                        <button data-playlist-id="${playlist.id}" ${isSongInPlaylist ? 'disabled class="text-gray-500 cursor-not-allowed p-1 rounded"' : 'class="text-[#84cc16] hover:text-[#65a30d] p-1 rounded"'}">
                             ${isSongInPlaylist ? '<i class="fas fa-check-circle mr-1"></i> Added' : '<i class="fas fa-plus-circle mr-1"></i> Add'}
                         </button>
                     `;
