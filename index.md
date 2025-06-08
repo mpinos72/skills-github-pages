@@ -388,7 +388,7 @@
 
         let songs = [
             { id: 's1', title: 'Surah 1: Al-Fatiha', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/001.mp3', 
-              lyrics: `[00:00.10]In the name of Allah, the Entirely Merciful, the Especially Merciful\n[00:19.00]\n[00:19.05] All praise is due to Allah, Lord of the worlds \n[00:29.00]\n[00:29.05]The Entirely Merciful, the Especially Merciful \n[00:38.00]\n[00:38.05]Sovereign of the Day of Recompense\n[00:45.00]\n[00:45.05]It is You we worship and You we ask for help \n[00:56.00]\n[00:56.05]Guide us to the straight path \n[01:05.00]\n[01:05.05]The path of those upon whom You have bestowed favor, not of those who have evoked Your anger or of those who are astray.\n[01:28.00]`},
+              lyrics: `[00:01.00]I seek refuge with Allah from the accursed Satan\n[00:06.24]\n[00:06.24]In the name of Allah, the Entirely Merciful, the Especially Merciful.\n[00:18.72]\n[00:18.72]All praise is due to Allah, Lord of the worlds\n[00:29.44]\n[00:29.44]The Entirely Merciful, the Especially Merciful\n[00:38.16]\n[00:38.16]Sovereign of the Day of Recompense\n[00:46.08]\n[00:46.08]It is You we worship and You we ask for help\n[00:56.96]\n[00:56.96]Guide us to the straight path\n[01:05.44]\n[01:05.44]The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray\n[01:26.88]`},
             { id: 's2', title: 'Surah 2: Al-Baqarah', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/002.mp3',
               lyrics: `[00:01.00]Alif, Lam, Meem.\n[00:04.50]This is the Book about which there is no doubt...\n[00:07.50]...a guidance for those conscious of Allah -`},
             { id: 's3', title: 'Surah 3: Al-Imran', artist: 'Mishary Al-Afasy and Ibrahim Walk', url: 'https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/003.mp3', lyrics: ''},
@@ -613,7 +613,7 @@
         shuffleBtn.addEventListener('click', function() {
             isShuffle = !isShuffle;
             shuffleBtn.classList.toggle('text-[#84cc16]', isShuffle);
-            shuffleBtn.classList.toggle('text-gray-400', !isShuffle);
+            shuffleBtn.classList.toggle('text-gray-400', !isLoop);
             
             const playingSongId = playbackTracklist[currentSongIndex]?.id;
             
