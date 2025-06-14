@@ -3,87 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Audio Stream Player</title>
+<title>Modern Audio Stream Player</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f2f2f2;
-    color: #333;
+    font-family: 'Inter', sans-serif;
+    background: #111;
+    color: #fff;
   }
-  .player {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: #fff;
-    padding: 10px;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    z-index: 999;
-  }
-  .controls, .progress, .info {
+  .app {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-  }
-  .controls button {
-    margin: 5px;
+    flex-direction: column;
+    height: 100vh;
   }
   .library {
-    padding-bottom: 200px;
+    flex: 1;
     overflow-y: auto;
     padding: 20px;
   }
   .song-item {
-    margin: 5px 0;
-    padding: 10px;
-    background: #fff;
-    border-radius: 5px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: #222;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s;
   }
-  .favorites, .playlists {
-    margin-top: 20px;
+  .song-item:hover {
+    background: #333;
+  }
+  .song-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .song-title {
+    font-weight: 600;
+  }
+  .player {
+    background: #1e1e1e;
+    padding: 20px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+  }
+  .info, .controls, .progress {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .controls button {
+    background: #333;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+  }
+  .controls button:hover {
+    background: #555;
+  }
+  input[type=range] {
+    flex: 1;
+    margin: 0 10px;
   }
 </style>
 </head>
 <body>
-
-<div class="library" id="library"></div>
-
-<div class="player">
-  <div class="info">
-    <span id="current-title">Title</span> — <span id="current-artist">Artist</span>
-  </div>
-  <div class="controls">
-    <button onclick="prevSong()">⏮️</button>
-    <button onclick="togglePlayPause()" id="play-btn">▶️</button>
-    <button onclick="nextSong()">⏭️</button>
-    <button onclick="toggleLoop()">🔁</button>
-    <button onclick="toggleShuffle()">🔀</button>
-    <input type="range" min="0" max="1" step="0.01" onchange="changeVolume(this.value)">
-  </div>
-  <div class="progress">
-    <span id="current-time">0:00</span>
-    <input type="range" id="progress-bar" value="0" onchange="seekAudio(this.value)">
-    <span id="duration">0:00</span>
+<div class="app">
+  <div class="library" id="library"></div>
+  <div class="player">
+    <div class="info">
+      <span id="current-title">Title</span> — <span id="current-artist">Artist</span>
+    </div>
+    <div class="controls">
+      <button onclick="prevSong()">⏮️</button>
+      <button onclick="togglePlayPause()" id="play-btn">▶️</button>
+      <button onclick="nextSong()">⏭️</button>
+      <button onclick="toggleLoop()">🔁</button>
+      <button onclick="toggleShuffle()">🔀</button>
+    </div>
+    <div class="progress">
+      <span id="current-time">0:00</span>
+      <input type="range" id="progress-bar" value="0" onchange="seekAudio(this.value)">
+      <span id="duration">0:00</span>
+    </div>
   </div>
 </div>
-
 <audio id="audio" preload="none"></audio>
-
 <script>
 const songs = [
   { title: "Surah 1: Al-Fatiha", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/001.mp3" },
   { title: "Surah 2: Al-Baqarah", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/002.mp3" },
   { title: "Surah 3: Al-Imran", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/003.mp3" },
   { title: "Surah 4: An-Nisa", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/004.mp3" },
-  { title: "Surah 5: Al-Maeda", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/005.mp3" },
-  { title: "Surah 6: Al-Annam", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/006.mp3" },
-  { title: "Surah 7: Al-Araf", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/007.mp3" },
-  { title: "Surah 8: Al-Anfal", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/008.mp3" },
-  { title: "Surah 9: At-Tawba", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/009.mp3" },
-  { title: "Surah 10: Yunus", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/010.mp3" }
+  { title: "Surah 5: Al-Maeda", artist: "Mishary Al-Afasy and Ibrahim Walk", url: "https://archive.org/download/AlQuranWithEnglishSaheehIntlTranslation--RecitationByMishariIbnRashidAl-AfasyWithIbrahimWalk/005.mp3" }
 ];
 
 let currentIndex = 0;
@@ -161,7 +180,7 @@ function renderLibrary() {
   songs.forEach((song, index) => {
     const item = document.createElement('div');
     item.className = 'song-item';
-    item.textContent = `${song.title} — ${song.artist}`;
+    item.innerHTML = `<div class="song-info"><span class="song-title">${song.title}</span><small>${song.artist}</small></div>`;
     item.onclick = () => {
       currentIndex = index;
       loadSong(currentIndex);
